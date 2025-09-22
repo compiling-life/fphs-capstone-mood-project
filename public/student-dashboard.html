@@ -86,119 +86,122 @@
         </div>
     </div>
 
-<script>
-    async function apiRequest(url, method = "GET", body = null) {
-        const options = { method, headers: { "Content-Type": "application/json" } };
-        if (body) options.body = JSON.stringify(body);
-        const res = await fetch(url, options);
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-    }
-
-    // Logout
-    function logout() {
-        apiRequest('/api/auth/logout', 'POST').finally(() => {
-            window.location.href = 'index.html';
-        });
-    }
-
-    // Load student classes from login/session
-    // Load student classes from session
-    async function loadStudentClasses() {
-    try {
-        const res = await fetch('/api/student/me');
-        const student = await res.json();
-
-        const classSelect = document.getElementById('classSelect');
-        classSelect.innerHTML = '<option value="">Select a class</option>';
-
-        student.selectedClasses.forEach(c => {
-            const option = document.createElement('option');
-            option.value = c.className;
-            option.textContent = `${c.className} (${c.period})`;
-            classSelect.appendChild(option);
-        });
-    } catch (err) {
-        console.error("Failed to load student classes:", err);
-    }
-}
-
-
-
-    // Mood button selection
-    document.querySelectorAll('#moodForm .grid button').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#moodForm .grid button').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            document.getElementById('moodValue').value = btn.dataset.value;
-        });
-    });
-
-    // Submit Mood
-    document.getElementById('moodForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try {
-            const className = document.getElementById('classSelect').value;
-            const moodLevel = document.getElementById('moodValue').value;
-            const notes = document.querySelector('#moodForm textarea').value;
-
-            if (!className || !moodLevel) return alert("Please select a class and mood.");
-
-            const data = await apiRequest('/api/moods', 'POST', { className, moodLevel, notes });
-            alert('Mood submitted successfully!\nAI Insight: ' + data.aiInsight);
-
-            loadMoodHistory();
-        } catch(err) {
-            alert(err.message);
+    <script>
+        async function apiRequest(url, method = "GET", body = null) {
+            const options = { method, headers: { "Content-Type": "application/json" } };
+            if (body) options.body = JSON.stringify(body);
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
         }
-    });
-
-    // Load Mood History
-    async function loadMoodHistory() {
-        try {
-            const moods = await apiRequest('/api/moods');
-            const labels = moods.map(m => new Date(m.date).toLocaleDateString());
-            const dataPoints = moods.map(m => m.moodLevel);
-
-            moodChart.data.labels = labels;
-            moodChart.data.datasets[0].data = dataPoints;
-            moodChart.update();
-
-            // Update recent submissions table
-            const tbody = document.querySelector('#recentMoodsTable tbody');
-            tbody.innerHTML = '';
-            moods.reverse().forEach(m => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b';
-                tr.innerHTML = `
-                    <td class="py-3">${new Date(m.date).toLocaleString()}</td>
-                    <td class="py-3">${m.className}</td>
-                    <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
-                    <td class="py-3">${m.notes || ''}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-        } catch(err) {
-            console.error(err);
-        }
-    }
-
-    // Initialize Chart
-    const ctx = document.getElementById('moodChart').getContext('2d');
-    const moodChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Mood Score', data: [], borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.4, fill: true }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
-    });
     
-    window.addEventListener('DOMContentLoaded', () => {
-    loadStudentClasses().then(loadMoodHistory);
-});
-
-
-    AOS.init();
-    feather.replace();
-</script>
+        // Logout
+        function logout() {
+            apiRequest('/api/auth/logout', 'POST').finally(() => {
+                window.location.href = 'index.html';
+            });
+        }
+    
+        let selectedMood = null;
+    
+        // Load student classes
+        async function loadStudentClasses() {
+            try {
+                const res = await fetch('/api/student/me');
+                if (!res.ok) throw new Error('Not logged in');
+                const student = await res.json();
+    
+                const classSelect = document.getElementById('classSelect');
+                classSelect.innerHTML = '<option value="">Select a class</option>';
+    
+                student.selectedClasses.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.className;
+                    option.dataset.period = c.period || '';
+                    option.dataset.teacherEmail = c.teacherEmail || '';
+                    option.textContent = `${c.className} (${c.period || 'No Period'}) - ${c.teacherEmail || 'No Teacher'}`;
+                    classSelect.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Failed to load student classes:', err);
+            }
+        }
+    
+        // Mood button selection with visual highlight
+        document.querySelectorAll('#moodForm .grid button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#moodForm .grid button').forEach(b => b.classList.remove('bg-indigo-600', 'text-white'));
+                btn.classList.add('bg-indigo-600', 'text-white');
+                selectedMood = btn.dataset.value;
+                document.getElementById('moodValue').value = selectedMood;
+            });
+        });
+    
+        // Submit Mood
+        document.getElementById('moodForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const className = document.getElementById('classSelect').value;
+                const moodLevel = document.getElementById('moodValue').value;
+                const notes = document.querySelector('#moodForm textarea').value;
+    
+                if (!className || !moodLevel) return alert("Please select a class and mood.");
+    
+                const data = await apiRequest('/api/moods', 'POST', { className, moodLevel, notes });
+                alert('Mood submitted successfully!\nAI Insight: ' + data.aiInsight);
+    
+                await loadMoodHistory();
+            } catch(err) {
+                alert(err.message);
+            }
+        });
+    
+        // Load Mood History
+        async function loadMoodHistory() {
+            try {
+                const moods = await apiRequest('/api/moods');
+                const labels = moods.map(m => new Date(m.date).toLocaleDateString());
+                const dataPoints = moods.map(m => m.moodLevel);
+    
+                moodChart.data.labels = labels;
+                moodChart.data.datasets[0].data = dataPoints;
+                moodChart.update();
+    
+                // Update recent submissions table
+                const tbody = document.querySelector('#recentMoodsTable tbody');
+                tbody.innerHTML = '';
+                moods.slice().reverse().forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b';
+                    tr.innerHTML = `
+                        <td class="py-3">${new Date(m.date).toLocaleString()}</td>
+                        <td class="py-3">${m.className}</td>
+                        <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
+                        <td class="py-3">${m.notes || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+    
+            } catch(err) {
+                console.error(err);
+            }
+        }
+    
+        // Initialize Chart
+        const ctx = document.getElementById('moodChart').getContext('2d');
+        const moodChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Mood Score', data: [], borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.4, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
+        });
+    
+        // Init on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStudentClasses().then(loadMoodHistory);
+            AOS.init();
+            feather.replace();
+        });
+    </script>
+    
 </body>
 </html>

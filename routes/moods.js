@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Mood = require('../models/Mood'); // adjust path if needed
+const Mood = require('../models/Mood'); 
+const User = require('../models/User'); // Assuming you have a User model
 
 // Submit a mood (student)
 router.post('/submit', async (req, res) => {
@@ -30,15 +31,30 @@ router.get('/student/:userId', async (req, res) => {
     }
 });
 
-// Get moods for all students (teacher view)
-router.get('/all', async (req, res) => {
+// Get moods for all students under a teacher
+router.get('/teacher/:teacherId', async (req, res) => {
     try {
-        const moods = await Mood.find().sort({ timestamp: -1 }).populate('userId', 'email role');
-        res.json({ moods });
+        const teacherId = req.params.teacherId;
+
+        // Get all students for this teacher
+        const students = await User.find({
+            role: 'student',
+            'selectedClasses.teacherId': teacherId
+        }).select('_id email selectedClasses');
+
+        const studentIds = students.map(s => s._id);
+
+        // Get moods for these students
+        const moods = await Mood.find({ userId: { $in: studentIds } })
+            .sort({ timestamp: -1 })
+            .populate('userId', 'email');
+
+        res.json(moods); // send as array
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
     }
 });
+
 
 module.exports = router;
