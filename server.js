@@ -74,8 +74,8 @@ app.post("/api/auth/signup", (req, res) => {
     if (selectedClasses.length > 7) return res.status(400).send("Cannot select more than 7 classes");
 
     // Ensure each selected class is an object {className, period}
-    userData.selectedClasses = selectedClasses.map(c => (typeof c === "string" ? JSON.parse(c) : c));
-  }
+    userData.selectedClasses = selectedClasses; // store objects directly
+}
 
   users.push(userData);
   req.session.user = { email, role, selectedClasses: userData.selectedClasses || [] };
