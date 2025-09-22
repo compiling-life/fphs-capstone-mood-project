@@ -104,30 +104,31 @@ app.get("/api/auth/me", (req, res) => {
 });
 
 app.post("/api/moods", async (req, res) => {
-    if (!req.session.user) return res.status(401).send("Not logged in");
-  
     const { className, moodLevel, notes } = req.body;
-    if (!className || !moodLevel) return res.status(400).send("Missing fields");
-  
-    // Find teacher email for selected class
+    if (!req.session.user) return res.status(401).send("Not logged in");
+
     const user = users.find(u => u.email === req.session.user.email);
-    const classObj = user.selectedClasses.find(c => c.className === className);
-    const teacherEmail = classObj?.teacherEmail || null;
-  
+    if (!user) return res.status(404).send("User not found");
+
+    // Find the teacher for this class
+    const selectedClass = user.selectedClasses.find(c => c.className === className);
+    if (!selectedClass) return res.status(400).send("Class not found for student");
+
     const entry = {
-      email: req.session.user.email,
-      className,
-      moodLevel,
-      notes: notes || '',
-      date: new Date(),
-      teacherEmail, // <-- include teacher reference
+        email: user.email,
+        className,
+        moodLevel,
+        notes,
+        date: new Date(),
+        teacherEmail: selectedClass.teacherEmail // Add teacherEmail here
     };
-  
+
     moods.push(entry);
-  
+
     const aiInsight = await getAIInsight(entry);
     res.send({ success: true, aiInsight });
-  });  
+});
+
 
 app.get("/api/moods", (req, res) => {
     if (!req.session.user) return res.status(401).send("Not logged in");
@@ -171,12 +172,13 @@ app.get("/api/teachers/students", (req, res) => {
 });
 
 app.get("/api/teachers/moods", (req, res) => {
-    if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
-  
-    const teacherMoods = moods.filter(m => m.teacherEmail === req.session.user.email);
-    res.send(teacherMoods);
-  });
-  
+  if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
+
+  // Filter moods that belong to this teacher
+  const teacherMoods = moods.filter(m => m.teacherEmail === req.session.user.email);
+
+  res.send(teacherMoods);
+});
 
 app.get("/api/teachers", (req, res) => {
   const teachers = users

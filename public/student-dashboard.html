@@ -153,7 +153,7 @@ document.getElementById('moodForm').addEventListener('submit', async (e) => {
         if (!className || !moodLevel) return alert("Please select a class and mood.");
 
         const data = await apiRequest('/api/moods', 'POST', { className, moodLevel, notes });
-        alert('Mood submitted successfully!\nAI Insight: ' + (data.aiInsight || 'N/A'));
+        alert('Mood submitted successfully!');
 
         await loadMoodHistory();
     } catch(err) {
