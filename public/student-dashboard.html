@@ -137,19 +137,15 @@
     // Load student classes from backend
     async function loadStudentClasses() {
     try {
-        // Get student info including selectedClasses
-        const data = await apiRequest('/api/auth/login', 'POST', {
-            email: sessionStorage.getItem('email'),
-            password: sessionStorage.getItem('password')
-        });
+        const data = await apiRequest("/api/student/me"); // uses current session
 
         const classSelect = document.getElementById('classSelect');
-        classSelect.innerHTML = '<option value="">Select a class</option>'; // reset
+        classSelect.innerHTML = '<option value="">Select a class</option>';
 
-        if(data.selectedClasses && data.selectedClasses.length > 0) {
+        if (data.selectedClasses && data.selectedClasses.length > 0) {
             data.selectedClasses.forEach(c => {
                 const option = document.createElement('option');
-                option.value = c.className; // you can use period/email too if needed
+                option.value = c.className; // or `${c.className} (${c.period})` if you want
                 option.textContent = `${c.className} (${c.period})`;
                 classSelect.appendChild(option);
             });
@@ -163,6 +159,7 @@
 window.addEventListener('DOMContentLoaded', () => {
     loadStudentClasses();
 });
+
 
 
     // Mood button selection

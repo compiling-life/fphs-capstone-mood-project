@@ -133,6 +133,20 @@ app.get("/api/moods", (req, res) => {
   }
 });
 
+app.get("/api/student/me", (req, res) => {
+    if (!req.session.user) return res.status(401).send("Not logged in");
+  
+    const user = users.find(u => u.email === req.session.user.email);
+    if (!user) return res.status(404).send("User not found");
+  
+    res.send({
+      email: user.email,
+      role: user.role,
+      selectedClasses: user.selectedClasses || []
+    });
+  });
+  
+
 // --- Teachers Routes ---
 app.get("/api/teachers/students", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
