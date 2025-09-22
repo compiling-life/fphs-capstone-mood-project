@@ -45,7 +45,6 @@ async function getAIInsight(entry) {
       }
     );
 
-    // Gemini returns text in candidates array
     return response.data?.candidates?.[0]?.content || "Could not generate insight.";
   } catch (err) {
     console.error("Gemini API error:", err.response?.data || err.message);
@@ -59,24 +58,30 @@ let moods = [];
 
 // --- Auth Routes ---
 app.post("/api/auth/signup", (req, res) => {
-    const { email, password, role, teacherEmail, className, period } = req.body;
-    if (!email || !password || !role) return res.status(400).send("Missing fields");
-    if (users.find(u => u.email === email)) return res.status(400).send("User exists");
-  
-    // For teachers, store className and period
-    const userData = { email, password, role };
-    if (role === "teacher") {
-      userData.className = className;
-      userData.period = period;
-    } else if (role === "student") {
-      userData.teacherEmail = teacherEmail;
+  const { email, password, role, teacherEmail, className, period, selectedClasses } = req.body;
+  if (!email || !password || !role) return res.status(400).send("Missing fields");
+  if (users.find(u => u.email === email)) return res.status(400).send("User exists");
+
+  const userData = { email, password, role };
+
+  if (role === "teacher") {
+    if (!className || !period) return res.status(400).send("Teacher must provide className and period");
+    userData.className = className;
+    userData.period = period;
+  } else if (role === "student") {
+    if (!selectedClasses || !Array.isArray(selectedClasses) || selectedClasses.length === 0) {
+      return res.status(400).send("Student must select at least one class");
     }
-  
-    users.push(userData);
-    req.session.user = { email, role };
-    res.send({ success: true, role });
-  });
-  
+    if (selectedClasses.length > 7) {
+      return res.status(400).send("Cannot select more than 7 classes");
+    }
+    userData.selectedClasses = selectedClasses.map(c => JSON.parse(c)); // Store as objects
+  }
+
+  users.push(userData);
+  req.session.user = { email, role };
+  res.send({ success: true, role });
+});
 
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
@@ -84,7 +89,7 @@ app.post("/api/auth/login", (req, res) => {
   if (!user) return res.status(401).send("Invalid credentials");
 
   req.session.user = { email: user.email, role: user.role };
-  res.send({ success: true, role: user.role });
+  res.send({ success: true, role: user.role, selectedClasses: user.selectedClasses || [] });
 });
 
 app.post("/api/auth/logout", (req, res) => {
@@ -106,9 +111,7 @@ app.post("/api/moods", async (req, res) => {
   };
   moods.push(entry);
 
-  // Generate AI insight for teacher
   const aiInsight = await getAIInsight(entry);
-
   res.send({ success: true, aiInsight });
 });
 
@@ -148,11 +151,11 @@ app.get("/api/teachers/moods", (req, res) => {
 });
 
 app.get("/api/teachers", (req, res) => {
-    const teachers = users.filter(u => u.role === "teacher")
-                          .map(t => ({ email: t.email, className: t.className, period: t.period }));
-    res.send(teachers);
-  });
-  
+  const teachers = users
+    .filter(u => u.role === "teacher")
+    .map(t => ({ email: t.email, className: t.className, period: t.period }));
+  res.send(teachers);
+});
 
 // Serve frontend (SPA)
 app.get("*", (req, res) => {
