@@ -39,11 +39,13 @@ async function getAIInsight(entry) {
       },
       {
         headers: {
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Authorization": `Bearer ${GEMINI_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
+
+    // Gemini returns text in candidates array
     return response.data?.candidates?.[0]?.content || "Could not generate insight.";
   } catch (err) {
     console.error("Gemini API error:", err.response?.data || err.message);
@@ -51,29 +53,17 @@ async function getAIInsight(entry) {
   }
 }
 
-// In-memory storage (replace with DB in production)
+// In-memory storage (replace with DB for production)
 let users = [];
 let moods = [];
 
 // --- Auth Routes ---
 app.post("/api/auth/signup", (req, res) => {
-  const { email, password, role, className, period, classes } = req.body;
+  const { email, password, role, teacherEmail } = req.body;
+  if (!email || !password || !role) return res.status(400).send("Missing fields");
+  if (users.find(u => u.email === email)) return res.status(400).send("User exists");
 
-  if (!email || !password || !role) return res.status(400).send({ success: false, message: "Missing fields" });
-  if (users.find(u => u.email === email)) return res.status(400).send({ success: false, message: "User exists" });
-
-  let newUser;
-  if (role === "teacher") {
-    if (!className || !period) return res.status(400).send({ success: false, message: "Teacher must provide class name and period" });
-    newUser = { email, password, role, className, period };
-  } else if (role === "student") {
-    if (!classes || classes.length !== 7) return res.status(400).send({ success: false, message: "Student must provide 7 classes" });
-    newUser = { email, password, role, classes }; // classes = array of { teacherEmail, className, period }
-  } else {
-    return res.status(400).send({ success: false, message: "Invalid role" });
-  }
-
-  users.push(newUser);
+  users.push({ email, password, role, teacherEmail });
   req.session.user = { email, role };
   res.send({ success: true, role });
 });
@@ -81,7 +71,7 @@ app.post("/api/auth/signup", (req, res) => {
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body;
   const user = users.find(u => u.email === email && u.password === password);
-  if (!user) return res.status(401).send({ success: false, message: "Invalid credentials" });
+  if (!user) return res.status(401).send("Invalid credentials");
 
   req.session.user = { email: user.email, role: user.role };
   res.send({ success: true, role: user.role });
@@ -92,18 +82,10 @@ app.post("/api/auth/logout", (req, res) => {
   res.send({ success: true });
 });
 
-// Get all teachers (for student dropdown)
-app.get("/api/teachers", (req, res) => {
-  const teacherList = users
-    .filter(u => u.role === "teacher")
-    .map(t => ({ email: t.email, className: t.className, period: t.period }));
-  res.send(teacherList);
-});
-
 // --- Moods Routes ---
 app.post("/api/moods", async (req, res) => {
   const { className, moodLevel, notes } = req.body;
-  if (!req.session.user) return res.status(401).send({ success: false, message: "Not logged in" });
+  if (!req.session.user) return res.status(401).send("Not logged in");
 
   const entry = {
     email: req.session.user.email,
@@ -114,18 +96,19 @@ app.post("/api/moods", async (req, res) => {
   };
   moods.push(entry);
 
+  // Generate AI insight for teacher
   const aiInsight = await getAIInsight(entry);
 
   res.send({ success: true, aiInsight });
 });
 
 app.get("/api/moods", (req, res) => {
-  if (!req.session.user) return res.status(401).send({ success: false, message: "Not logged in" });
+  if (!req.session.user) return res.status(401).send("Not logged in");
 
   if (req.session.user.role === "teacher") {
     const teacherMoods = moods.filter(m => {
       const student = users.find(u => u.email === m.email);
-      return student?.classes?.some(c => c.teacherEmail === req.session.user.email) || student?.teacherEmail === req.session.user.email;
+      return student?.teacherEmail === req.session.user.email;
     });
     res.send(teacherMoods);
   } else {
@@ -137,19 +120,19 @@ app.get("/api/moods", (req, res) => {
 // --- Teachers Routes ---
 app.get("/api/teachers/students", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") {
-    return res.status(401).send({ success: false, message: "Not authorized" });
+    return res.status(401).send("Not authorized");
   }
-  const students = users.filter(u => u.role === "student" && u.classes.some(c => c.teacherEmail === req.session.user.email));
+  const students = users.filter(u => u.teacherEmail === req.session.user.email);
   res.send(students);
 });
 
 app.get("/api/teachers/moods", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") {
-    return res.status(401).send({ success: false, message: "Not authorized" });
+    return res.status(401).send("Not authorized");
   }
   const teacherMoods = moods.filter(m => {
     const student = users.find(u => u.email === m.email);
-    return student?.classes?.some(c => c.teacherEmail === req.session.user.email);
+    return student?.teacherEmail === req.session.user.email;
   });
   res.send(teacherMoods);
 });
