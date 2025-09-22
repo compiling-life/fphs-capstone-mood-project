@@ -6,16 +6,31 @@ const User = require('../models/User');
 // Get all student moods (for dashboard)
 router.get('/moods', async (req, res) => {
     try {
-        const moods = await Mood.find()
-            .sort({ timestamp: -1 })
-            .populate('userId', 'email role'); // includes student email/role
-
-        res.json({ success: true, moods });
+      const teacherEmail = req.session.user?.email;
+      if (!teacherEmail || req.session.user.role !== 'teacher') {
+        return res.status(401).json({ error: 'Not authorized' });
+      }
+  
+      // Get students for this teacher
+      const students = await User.find({
+        role: 'student',
+        'selectedClasses.teacherEmail': teacherEmail
+      }).select('_id email selectedClasses');
+  
+      const studentIds = students.map(s => s._id);
+  
+      // Get moods only for those students
+      const moods = await Mood.find({ studentId: { $in: studentIds } })
+        .sort({ date: -1 })
+        .populate('studentId', 'email'); // so frontend can access studentId.email
+  
+      res.json(moods); 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Server error' });
+      console.error('Error fetching teacher moods:', err);
+      res.status(500).json({ error: 'Server error' });
     }
-});
+  });
+  
 
 // Get summary stats (for overview cards)
 router.get('/summary', async (req, res) => {
