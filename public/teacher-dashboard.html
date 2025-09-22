@@ -4,106 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teacher Dashboard - EduMood</title>
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-<nav class="bg-white shadow-lg p-4 flex justify-between">
-  <div><i data-feather="smile"></i> <strong>EduMood</strong></div>
-  <div>
-    <span id="welcomeName">Welcome, Teacher</span>
-    <button onclick="logout()" class="ml-4 px-4 py-2 bg-gray-200 rounded">Logout</button>
+<!-- Navbar -->
+<nav class="bg-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 flex items-center">
+          <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
+          <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="text-gray-600" id="welcomeName">Welcome, Teacher!</span>
+        <button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
+      </div>
+    </div>
   </div>
 </nav>
 
-<div class="max-w-6xl mx-auto p-6">
-
-  <!-- Overview -->
-  <div class="grid grid-cols-3 gap-4 mb-6" id="overviewCards"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Overview Cards -->
+  <div class="grid md:grid-cols-3 gap-6 mb-8" id="overviewCards"></div>
 
   <!-- Charts -->
-  <div class="grid grid-cols-2 gap-4 mb-6">
-    <canvas id="classChart"></canvas>
-    <canvas id="trendChart"></canvas>
+  <div class="grid md:grid-cols-2 gap-8 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-right">
+      <h2 class="text-2xl font-bold mb-6">Class Mood Comparison</h2>
+      <div class="h-64"><canvas id="classChart"></canvas></div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-left">
+      <h2 class="text-2xl font-bold mb-6">Weekly Trends</h2>
+      <div class="h-64"><canvas id="trendChart"></canvas></div>
+    </div>
   </div>
 
-  <!-- Recent Submissions -->
-  <div>
-    <h2 class="text-xl font-bold mb-2">Recent Submissions</h2>
-    <table class="w-full border" id="recentTable">
-      <thead>
-        <tr class="border-b">
-          <th>Date</th><th>Class</th><th>Period</th><th>Student</th><th>Mood</th><th>Notes</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <!-- Recent Submissions Table -->
+  <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
+    <h2 class="text-2xl font-bold mb-6">Recent Submissions</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full" id="recentSubmissionsTable">
+        <thead>
+          <tr class="border-b">
+            <th class="text-left py-3">Date</th>
+            <th class="text-left py-3">Class</th>
+            <th class="text-left py-3">Period</th>
+            <th class="text-left py-3">Student</th>
+            <th class="text-left py-3">Mood</th>
+            <th class="text-left py-3">Notes</th>
+          </tr>
+        </thead>
+        <tbody id="recentSubmissionsTableBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <script>
-async function apiRequest(url, method='GET', body=null){
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if(body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if(!res.ok) throw new Error(await res.text());
-  return res.json();
+// --- API Request Helper ---
+async function apiRequest(url, method = "GET", body = null) {
+    const options = { method, headers: { "Content-Type": "application/json" } };
+    if (body) options.body = JSON.stringify(body);
+    const res = await fetch(url, options);
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
 }
 
-function logout(){ apiRequest('/api/auth/logout','POST').finally(()=>location.href='index.html'); }
-
-let classChart, trendChart;
-
-async function loadDashboard(){
-  const teacher = await apiRequest('/api/auth/me');
-  document.getElementById('welcomeName').textContent = `Welcome, ${teacher.email}`;
-
-  const moods = await apiRequest('/api/teachers/moods');
-
-  // Overview
-  const students = [...new Set(moods.map(m=>m.userId._id))].length;
-  const submissions = moods.length;
-  const avgMood = (moods.reduce((a,b)=>a+b.moodLevel,0)/submissions || 0).toFixed(2);
-  const overview = document.getElementById('overviewCards');
-  overview.innerHTML = `
-    <div class="bg-white p-4 rounded shadow"><div>Total Students</div><div>${students}</div></div>
-    <div class="bg-white p-4 rounded shadow"><div>Total Submissions</div><div>${submissions}</div></div>
-    <div class="bg-white p-4 rounded shadow"><div>Average Mood</div><div>${avgMood}</div></div>
-  `;
-
-  // Class Chart
-  const classes = [...new Set(moods.map(m=>m.className))];
-  const avgPerClass = classes.map(cls=>{
-    const clsMoods = moods.filter(m=>m.className===cls);
-    return (clsMoods.reduce((sum,m)=>sum+m.moodLevel,0)/clsMoods.length).toFixed(2);
-  });
-
-  if(!classChart){
-    const ctx = document.getElementById('classChart').getContext('2d');
-    classChart = new Chart(ctx, { type:'bar', data:{ labels: classes, datasets:[{label:'Average Mood', data: avgPerClass, backgroundColor:'#3b82f6' }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true,max:5}}}});
-  } else {
-    classChart.data.labels = classes;
-    classChart.data.datasets[0].data = avgPerClass;
-    classChart.update();
-  }
-
-  // Recent Table
-  const tbody = document.querySelector('#recentTable tbody');
-  tbody.innerHTML = '';
-  moods.forEach(m=>{
-    const studentClass = m.userId.selectedClasses.find(c=>c.className===m.className);
-    const period = studentClass ? studentClass.period : 'N/A';
-    const tr = document.createElement('tr');
-    tr.className='border-b';
-    tr.innerHTML = `<td>${new Date(m.date).toLocaleString()}</td><td>${m.className}</td><td>${period}</td><td>${m.userId.email}</td><td>${m.moodLevel}</td><td>${m.notes||''}</td>`;
-    tbody.appendChild(tr);
-  });
+// Logout
+function logout() {
+    apiRequest('/api/auth/logout','POST').finally(()=>window.location.href='index.html');
 }
 
-loadDashboard();
-feather.replace();
+// --- Dashboard Loader ---
+async function loadTeacherDashboard() {
+    try {
+        // Get teacher info
+        const teacher = await apiRequest('/api/auth/me');
+        document.getElementById('welcomeName').textContent = `Welcome, ${teacher.email}`;
+
+        // Get all moods
+        const moods = await apiRequest('/api/teachers/moods');
+
+        // --- Overview Cards ---
+        const totalStudents = [...new Set(moods.map(m => m.userId._id))].length;
+        const totalMoods = moods.length;
+        const avgMood = (moods.reduce((sum,m)=>sum+m.moodLevel,0)/totalMoods || 0).toFixed(2);
+
+        const overviewContainer = document.getElementById('overviewCards');
+        overviewContainer.innerHTML = `
+            <div class="bg-white p-4 rounded-xl shadow-sm">
+              <h3 class="text-lg font-semibold">Total Students</h3>
+              <p class="text-2xl font-bold">${totalStudents}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm">
+              <h3 class="text-lg font-semibold">Total Submissions</h3>
+              <p class="text-2xl font-bold">${totalMoods}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm">
+              <h3 class="text-lg font-semibold">Average Mood</h3>
+              <p class="text-2xl font-bold">${avgMood}</p>
+            </div>
+        `;
+
+        // --- Class Mood Chart ---
+        const classes = [...new Set(moods.map(m=>m.className))];
+        const avgMoodPerClass = classes.map(cls => {
+            const clsMoods = moods.filter(m=>m.className===cls);
+            return (clsMoods.reduce((sum,m)=>sum+m.moodLevel,0)/clsMoods.length).toFixed(2);
+        });
+
+        classChart.data.labels = classes;
+        classChart.data.datasets[0].data = avgMoodPerClass;
+        classChart.data.datasets[0].backgroundColor = classes.map(()=>'#3b82f6');
+        classChart.update();
+
+        // --- Weekly Trends Chart ---
+        const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        trendChart.data.datasets = classes.map((cls,idx) => {
+            const data = weekdays.map(day => {
+                const dayMoods = moods.filter(m=>
+                    new Date(m.date).toLocaleDateString('en-US',{weekday:'short'})===day &&
+                    m.className===cls
+                );
+                return dayMoods.length ? (dayMoods.reduce((sum,m)=>sum+m.moodLevel,0)/dayMoods.length).toFixed(2) : null;
+            });
+            const colors = ['#ef4444','#3b82f6','#a855f7','#10b981','#f59e0b'];
+            return { label: cls, data, borderColor: colors[idx%colors.length], tension:0.4 };
+        });
+        trendChart.update();
+
+        // --- Recent Submissions Table ---
+        const tbody = document.getElementById('recentSubmissionsTableBody');
+        tbody.innerHTML = '';
+        moods.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(m=>{
+            const tr = document.createElement('tr');
+            tr.className = 'border-b';
+            tr.innerHTML = `
+                <td class="py-3">${new Date(m.date).toLocaleString()}</td>
+                <td class="py-3">${m.className}</td>
+                <td class="py-3">${m.period || 'No Period'}</td>
+                <td class="py-3">${m.userId.email}</td>
+                <td class="py-3">${m.moodLevel}</td>
+                <td class="py-3">${m.notes || ''}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch(err) {
+        console.error('Error loading teacher dashboard:', err);
+        alert('Failed to load teacher dashboard.');
+    }
+}
+
+// --- Initialize Charts ---
+const classCtx = document.getElementById('classChart').getContext('2d');
+const classChart = new Chart(classCtx,{
+    type:'bar',
+    data:{labels:[], datasets:[{label:'Average Mood', data:[], backgroundColor:[]}]},
+    options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:5}}}
+});
+
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const trendChart = new Chart(trendCtx,{
+    type:'line',
+    data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[]},
+    options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:5}}}
+});
+
+// --- Load dashboard on page load ---
+window.addEventListener('DOMContentLoaded', ()=>{
+    loadTeacherDashboard();
+    AOS.init();
+    feather.replace();
+});
 </script>
 </body>
 </html>
