@@ -187,7 +187,7 @@ loginBtn.addEventListener('click', () => openModal('loginModal'));
 signupBtn.addEventListener('click', () => openModal('signupModal'));
 
 // Show/hide fields based on role
-signupRoleSelect.addEventListener('change', () => {
+signupRoleSelect.addEventListener('change', async () => {
     const role = signupRoleSelect.value;
     if (role === 'teacher') {
         teacherFields.classList.remove('hidden');
@@ -195,7 +195,7 @@ signupRoleSelect.addEventListener('change', () => {
     } else {
         teacherFields.classList.add('hidden');
         studentFields.classList.remove('hidden');
-        populateStudentClassDropdowns();
+        await populateStudentClassDropdowns();
     }
 });
 
@@ -245,28 +245,30 @@ async function login() {
 }
 
 async function signup() {
-    const email = document.querySelector('#signupModal input[type="email"]').value;
-    const password = document.querySelector('#signupModal input[type="password"]').value;
+    const email = document.querySelector('#signupModal input[name="email"]').value;
+    const password = document.querySelector('#signupModal input[name="password"]').value;
     const role = document.querySelector('#signupRole').value;
 
     let body = { email, password, role };
 
     if (role === "teacher") {
-        const className = document.querySelector('#teacherFields input[name="className"]')?.value;
-        const period = document.querySelector('#teacherFields input[name="period"]')?.value;
+        const className = document.querySelector('#teacherFields input[name="className"]').value;
+        const period = document.querySelector('#teacherFields input[name="period"]').value;
         if (!className || !period) return alert("Teacher must provide class name and period");
         body.className = className;
         body.period = period;
     } else if (role === "student") {
-        const classSelects = document.querySelectorAll('#studentClasses select');
-        if (classSelects.length !== 7) return alert("Student must select 7 classes");
+        const selects = document.querySelectorAll('#studentClasses select');
+        if (selects.length !== 7) return alert("You must select 7 classes");
 
-        const classes = Array.from(classSelects).map(s => {
-            try { return JSON.parse(s.value); }
-            catch { return null; }
-        });
-        if (classes.some(c => !c)) return alert("All classes must be selected");
-        body.classes = classes;
+        try {
+            body.classes = Array.from(selects).map(s => {
+                if (!s.value) throw new Error("All classes must be selected");
+                return JSON.parse(s.value);
+            });
+        } catch (err) {
+            return alert(err.message);
+        }
     }
 
     try {
@@ -280,11 +282,9 @@ async function signup() {
         console.log("Signup response:", data);
 
         if (data.success) {
-            if (data.role === "student") {
-                window.location.href = 'student-dashboard.html';
-            } else if (data.role === "teacher") {
-                window.location.href = 'teacher-dashboard.html';
-            }
+            window.location.href = data.role === "teacher"
+                ? 'teacher-dashboard.html'
+                : 'student-dashboard.html';
         } else {
             alert(data.message || "Signup failed");
         }
