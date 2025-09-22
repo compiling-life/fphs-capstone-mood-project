@@ -141,74 +141,88 @@
     </div>
 
     <script>
-        async function apiRequest(url, method = "GET", body = null) {
-            const options = { method, headers: { "Content-Type": "application/json" } };
-            if (body) options.body = JSON.stringify(body);
-            const res = await fetch(url, options);
-            if (!res.ok) throw new Error(await res.text());
-            return res.json();
-        }
-        
-        // Open/close modals
         function openModal(modalId) {
             document.getElementById(modalId).classList.remove('hidden');
             document.getElementById(modalId).classList.add('flex');
         }
-        
+    
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('flex');
             document.getElementById(modalId).classList.add('hidden');
         }
-        
+    
         function switchToSignup() {
             closeModal('loginModal');
             openModal('signupModal');
         }
-        
+    
         function switchToLogin() {
             closeModal('signupModal');
             openModal('loginModal');
         }
-        
-        // Login
+    
         async function login() {
+            const email = document.querySelector('#loginModal input[type="email"]').value;
+            const password = document.querySelector('#loginModal input[type="password"]').value;
+    
             try {
-                const email = document.querySelector('#loginModal input[type="email"]').value;
-                const password = document.querySelector('#loginModal input[type="password"]').value;
-                const data = await apiRequest('/api/auth/login', 'POST', { email, password });
-        
-                if (data.role === 'student') window.location.href = 'student-dashboard.html';
-                else if (data.role === 'teacher') window.location.href = 'teacher-dashboard.html';
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+    
+                const data = await res.json();
+                if (res.ok) {
+                    if (data.role === "student") {
+                        window.location.href = 'student-dashboard.html';
+                    } else if (data.role === "teacher") {
+                        window.location.href = 'teacher-dashboard.html';
+                    }
+                } else {
+                    alert(data || "Login failed");
+                }
             } catch (err) {
-                alert(err.message);
+                console.error(err);
+                alert("Error logging in");
             }
         }
-        
-        // Signup
+    
         async function signup() {
+            const email = document.querySelector('#signupModal input[type="email"]').value;
+            const password = document.querySelector('#signupModal input[type="password"]').value;
+            const role = document.querySelector('#signupModal select').value;
+    
             try {
-                const email = document.querySelector('#signupModal input[type="email"]').value;
-                const password = document.querySelector('#signupModal input[type="password"]').value;
-                const role = document.querySelector('#signupModal select').value;
-                const teacherEmail = role === 'student' ? prompt("Enter your teacher's email") : null;
-        
-                const data = await apiRequest('/api/auth/signup', 'POST', { email, password, role, teacherEmail });
-        
-                if (data.role === 'student') window.location.href = 'student-dashboard.html';
-                else if (data.role === 'teacher') window.location.href = 'teacher-dashboard.html';
+                const res = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+    
+                const data = await res.json();
+                if (res.ok) {
+                    if (data.role === "student") {
+                        window.location.href = 'student-dashboard.html';
+                    } else if (data.role === "teacher") {
+                        window.location.href = 'teacher-dashboard.html';
+                    }
+                } else {
+                    alert(data || "Signup failed");
+                }
             } catch (err) {
-                alert(err.message);
+                console.error(err);
+                alert("Error signing up");
             }
         }
-        
-        // Event listeners
+    
         document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
         document.getElementById('signupBtn').addEventListener('click', () => openModal('signupModal'));
         document.getElementById('getStartedBtn').addEventListener('click', () => openModal('signupModal'));
-        
+    
         AOS.init({ duration: 800, once: true });
         feather.replace();
-        </script>
+    </script>    
         
 </body>
 </html>
