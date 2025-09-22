@@ -103,28 +103,22 @@ app.get("/api/auth/me", (req, res) => {
   res.json(req.session.user);
 });
 
-app.post("/api/moods", async (req, res) => {
-  const { className, moodLevel, notes } = req.body;
+app.post("/api/moods", (req, res) => {
   if (!req.session.user) return res.status(401).send("Not logged in");
 
-  // Find the teacher for the selected class
-  const selectedClass = req.session.user.selectedClasses.find(c => c.className === className);
-  const teacherEmail = selectedClass ? selectedClass.teacherEmail : null;
-
+  const { className, moodLevel, notes } = req.body;
   const entry = {
     email: req.session.user.email,
     className,
     moodLevel,
     notes,
-    date: new Date(),
-    teacherEmail
+    date: new Date()
   };
-
   moods.push(entry);
 
-  const aiInsight = await getAIInsight(entry);
-  res.send({ success: true, aiInsight });
+  res.send({ success: true }); // no AI insight
 });
+
 
 
 
