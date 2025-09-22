@@ -161,10 +161,18 @@ document.getElementById('moodForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Load Mood History
-async function loadMoodHistory() {
+async function loadMoodHistory(selectedClass = null) {
     try {
-        const moods = await apiRequest('/api/moods');
+        // Build API URL with optional class filter
+        let url = '/api/moods';
+        if (selectedClass) {
+            url += `?className=${encodeURIComponent(selectedClass)}`;
+        }
+
+        // Fetch moods
+        const moods = await apiRequest(url);
+
+        // Update Chart
         const labels = moods.map(m => new Date(m.date).toLocaleDateString());
         const dataPoints = moods.map(m => m.moodLevel);
 
@@ -172,7 +180,7 @@ async function loadMoodHistory() {
         moodChart.data.datasets[0].data = dataPoints;
         moodChart.update();
 
-        // Update recent submissions table
+        // Update Recent Submissions Table
         const tbody = document.querySelector('#recentMoodsTable tbody');
         tbody.innerHTML = '';
         moods.slice().reverse().forEach(m => {
@@ -181,18 +189,23 @@ async function loadMoodHistory() {
             tr.innerHTML = `
                 <td class="py-3">${new Date(m.date).toLocaleString()}</td>
                 <td class="py-3">${m.className}</td>
-                <td class="py-3">${m.period || 'No Period'}</td>
-                <td class="py-3">${m.teacherEmail || 'No Teacher'}</td>
                 <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
                 <td class="py-3">${m.notes || ''}</td>
             `;
             tbody.appendChild(tr);
         });
-
-    } catch(err) {
-        console.error(err);
+    } catch (err) {
+        console.error('Failed to load mood history:', err);
+        alert('Error loading mood history.');
     }
 }
+
+// Listen for class change
+document.getElementById('classSelect').addEventListener('change', (e) => {
+    const selectedClass = e.target.value;
+    loadMoodHistory(selectedClass);
+});
+
 
 // Initialize Chart
 const ctx = document.getElementById('moodChart').getContext('2d');

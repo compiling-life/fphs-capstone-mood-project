@@ -103,40 +103,52 @@ app.get("/api/auth/me", (req, res) => {
   res.json(req.session.user);
 });
 
-// --- Moods Routes ---
 app.post("/api/moods", async (req, res) => {
-  if (!req.session.user) return res.status(401).send("Not logged in");
-
-  const { className, moodLevel, notes } = req.body;
-  if (!className || !moodLevel) return res.status(400).send("Missing fields");
-
-  const entry = {
-    email: req.session.user.email,
-    className,
-    moodLevel,
-    notes: notes || '',
-    date: new Date(),
-  };
-  moods.push(entry);
-
-  const aiInsight = await getAIInsight(entry);
-  res.send({ success: true, aiInsight });
-});
+    if (!req.session.user) return res.status(401).send("Not logged in");
+  
+    const { className, moodLevel, notes } = req.body;
+    if (!className || !moodLevel) return res.status(400).send("Missing fields");
+  
+    // Find teacher email for selected class
+    const user = users.find(u => u.email === req.session.user.email);
+    const classObj = user.selectedClasses.find(c => c.className === className);
+    const teacherEmail = classObj?.teacherEmail || null;
+  
+    const entry = {
+      email: req.session.user.email,
+      className,
+      moodLevel,
+      notes: notes || '',
+      date: new Date(),
+      teacherEmail, // <-- include teacher reference
+    };
+  
+    moods.push(entry);
+  
+    const aiInsight = await getAIInsight(entry);
+    res.send({ success: true, aiInsight });
+  });  
 
 app.get("/api/moods", (req, res) => {
-  if (!req.session.user) return res.status(401).send("Not logged in");
-
-  if (req.session.user.role === "teacher") {
-    const teacherMoods = moods.filter(m => {
-      const student = users.find(u => u.email === m.email);
-      return student?.selectedClasses?.some(c => c.teacherEmail === req.session.user.email);
-    });
-    res.send(teacherMoods);
-  } else {
-    const studentMoods = moods.filter(m => m.email === req.session.user.email);
-    res.send(studentMoods);
-  }
-});
+    if (!req.session.user) return res.status(401).send("Not logged in");
+  
+    const { className } = req.query; // read class from query param
+  
+    if (req.session.user.role === "teacher") {
+      const teacherMoods = moods.filter(m => {
+        const student = users.find(u => u.email === m.email);
+        return student?.selectedClasses?.some(c => c.teacherEmail === req.session.user.email);
+      });
+      res.send(teacherMoods);
+    } else {
+      let studentMoods = moods.filter(m => m.email === req.session.user.email);
+      if (className) {
+        studentMoods = studentMoods.filter(m => m.className === className);
+      }
+      res.send(studentMoods);
+    }
+  });
+  
 
 app.get("/api/student/me", (req, res) => {
   if (!req.session.user) return res.status(401).send("Not logged in");
@@ -159,13 +171,12 @@ app.get("/api/teachers/students", (req, res) => {
 });
 
 app.get("/api/teachers/moods", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
-  const teacherMoods = moods.filter(m => {
-    const student = users.find(u => u.email === m.email);
-    return student?.selectedClasses?.some(c => c.teacherEmail === req.session.user.email);
+    if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
+  
+    const teacherMoods = moods.filter(m => m.teacherEmail === req.session.user.email);
+    res.send(teacherMoods);
   });
-  res.send(teacherMoods);
-});
+  
 
 app.get("/api/teachers", (req, res) => {
   const teachers = users
