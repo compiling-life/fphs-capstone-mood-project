@@ -149,12 +149,15 @@
 
                 <!-- Student classes -->
                 <!-- Student selects multiple classes -->
+<!-- Student classes -->
 <div class="mb-6" id="studentClassesContainer">
     <label class="block text-gray-700 mb-2">Select Classes (up to 7)</label>
-    <select id="studentClasses" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <!-- Options populated dynamically -->
+    <select id="studentClasses" multiple
+      class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <!-- Options populated dynamically -->
     </select>
-</div>
+  </div>
+  
 
 
                 <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
@@ -280,32 +283,42 @@
 
 
         // --- Load Teachers for dropdown ---
-        async function loadTeachers() {
-            try {
-                const res = await fetch("/api/teachers");
-                const teachers = await res.json();
+        // --- Load Teachers for dropdown ---
+async function loadTeachers() {
+  try {
+    const res = await fetch("/api/teachers");
+    const teachers = await res.json();
 
-                // Fill student classes multi-select
-                const classSelect = document.getElementById("studentClassesSelect");
-                classSelect.innerHTML = "";
-                teachers.forEach(t => {
-                    const option = document.createElement("option");
-                    option.value = JSON.stringify({ className: t.className, period: t.period });
-                    option.textContent = `${t.className} (${t.period})`;
-                    classSelect.appendChild(option);
-                });
+    const classSelect = document.getElementById("studentClasses");
+    classSelect.innerHTML = ""; // Clear any old options
 
-                // Initialize Select2 for better UI
-                $("#studentClassesSelect").select2({
-                    placeholder: "Select your classes (up to 7)",
-                    maximumSelectionLength: 7,
-                    dropdownParent: $("#signupModal")
-                });
+    teachers.forEach(t => {
+      const option = document.createElement("option");
+      option.value = JSON.stringify({ className: t.className, period: t.period });
+      option.textContent = `${t.className} (Period ${t.period}) - ${t.email}`;
+      classSelect.appendChild(option);
+    });
 
-            } catch(err) {
-                console.error("Failed to load teachers:", err);
-            }
-        }
+    // Initialize Select2 on the correct element
+    $("#studentClasses").select2({
+      placeholder: "Select your classes (up to 7)",
+      maximumSelectionLength: 7,
+      width: '100%',
+      dropdownParent: $("#signupModal")
+    });
+
+  } catch (err) {
+    console.error("Failed to load teachers:", err);
+  }
+}
+document.getElementById("signupRole").addEventListener("change", (e) => {
+  if (e.target.value === "student") {
+    document.getElementById("studentClassesContainer").style.display = "block";
+    loadClassesForStudent();
+  } else {
+    document.getElementById("studentClassesContainer").style.display = "none";
+  }
+});
 
         // Init AOS + Feather icons
         AOS.init();
