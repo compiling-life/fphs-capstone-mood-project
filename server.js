@@ -44,7 +44,6 @@ async function getAIInsight(entry) {
         },
       }
     );
-
     return response.data?.candidates?.[0]?.content || "Could not generate insight.";
   } catch (err) {
     console.error("Gemini API error:", err.response?.data || err.message);
@@ -59,6 +58,7 @@ let moods = [];
 // --- Auth Routes ---
 app.post("/api/auth/signup", (req, res) => {
   const { email, password, role, teacherEmail, className, period, selectedClasses } = req.body;
+
   if (!email || !password || !role) return res.status(400).send("Missing fields");
   if (users.find(u => u.email === email)) return res.status(400).send("User exists");
 
@@ -69,17 +69,16 @@ app.post("/api/auth/signup", (req, res) => {
     userData.className = className;
     userData.period = period;
   } else if (role === "student") {
-    if (!selectedClasses || !Array.isArray(selectedClasses) || selectedClasses.length === 0) {
+    if (!selectedClasses || !Array.isArray(selectedClasses) || selectedClasses.length === 0)
       return res.status(400).send("Student must select at least one class");
-    }
-    if (selectedClasses.length > 7) {
-      return res.status(400).send("Cannot select more than 7 classes");
-    }
-    userData.selectedClasses = selectedClasses.map(c => JSON.parse(c)); // Store as objects
+    if (selectedClasses.length > 7) return res.status(400).send("Cannot select more than 7 classes");
+
+    // Ensure each selected class is an object {className, period}
+    userData.selectedClasses = selectedClasses.map(c => (typeof c === "string" ? JSON.parse(c) : c));
   }
 
   users.push(userData);
-  req.session.user = { email, role };
+  req.session.user = { email, role, selectedClasses: userData.selectedClasses || [] };
   res.send({ success: true, role });
 });
 
@@ -88,7 +87,11 @@ app.post("/api/auth/login", (req, res) => {
   const user = users.find(u => u.email === email && u.password === password);
   if (!user) return res.status(401).send("Invalid credentials");
 
-  req.session.user = { email: user.email, role: user.role };
+  req.session.user = {
+    email: user.email,
+    role: user.role,
+    selectedClasses: user.selectedClasses || [],
+  };
   res.send({ success: true, role: user.role, selectedClasses: user.selectedClasses || [] });
 });
 
@@ -132,20 +135,18 @@ app.get("/api/moods", (req, res) => {
 
 // --- Teachers Routes ---
 app.get("/api/teachers/students", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "teacher") {
-    return res.status(401).send("Not authorized");
-  }
-  const students = users.filter(u => u.teacherEmail === req.session.user.email);
+  if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
+
+  const students = users.filter(u => u.selectedClasses?.some(c => c.teacherEmail === req.session.user.email));
   res.send(students);
 });
 
 app.get("/api/teachers/moods", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "teacher") {
-    return res.status(401).send("Not authorized");
-  }
+  if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
+
   const teacherMoods = moods.filter(m => {
     const student = users.find(u => u.email === m.email);
-    return student?.teacherEmail === req.session.user.email;
+    return student?.selectedClasses?.some(c => c.teacherEmail === req.session.user.email);
   });
   res.send(teacherMoods);
 });
