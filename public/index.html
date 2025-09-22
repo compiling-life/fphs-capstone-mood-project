@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -141,6 +140,34 @@
     </div>
 
     <script>
+        // --- Modal Logic ---
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        }
+
+        function switchToSignup() {
+            closeModal('loginModal');
+            openModal('signupModal');
+        }
+
+        function switchToLogin() {
+            closeModal('signupModal');
+            openModal('loginModal');
+        }
+
+        loginBtn.addEventListener('click', () => openModal('loginModal'));
+        signupBtn.addEventListener('click', () => openModal('signupModal'));
+
+        // --- Auth Functions ---
         async function login() {
             const email = document.querySelector('#loginModal input[type="email"]').value;
             const password = document.querySelector('#loginModal input[type="password"]').value;
@@ -153,6 +180,7 @@
                 });
         
                 const data = await res.json();
+                console.log("Login response:", data);
                 if (res.ok && data.success) {
                     if (data.role === "student") {
                         window.location.href = 'student-dashboard.html';
@@ -160,7 +188,7 @@
                         window.location.href = 'teacher-dashboard.html';
                     }
                 } else {
-                    alert(data || "Login failed");
+                    alert(data.message || "Login failed");
                 }
             } catch (err) {
                 console.error(err);
@@ -181,6 +209,7 @@
                 });
         
                 const data = await res.json();
+                console.log("Signup response:", data);
                 if (res.ok && data.success) {
                     if (data.role === "student") {
                         window.location.href = 'student-dashboard.html';
@@ -188,14 +217,17 @@
                         window.location.href = 'teacher-dashboard.html';
                     }
                 } else {
-                    alert(data || "Signup failed");
+                    alert(data.message || "Signup failed");
                 }
             } catch (err) {
                 console.error(err);
                 alert("Error signing up");
             }
         }
-        </script>        
-        
+
+        // Init AOS + Feather icons
+        AOS.init();
+        feather.replace();
+    </script>        
 </body>
 </html>
