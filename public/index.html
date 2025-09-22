@@ -295,7 +295,8 @@ async function loadTeachers() {
     teachers.forEach(t => {
       const option = document.createElement("option");
       option.value = JSON.stringify({ className: t.className, period: t.period });
-      option.textContent = `${t.className} (Period ${t.period}) - ${t.email}`;
+      option.textContent = `${t.className} (${t.period}) - ${t.teacherEmail}`;
+option.dataset.teacheremail = t.teacherEmail;
       classSelect.appendChild(option);
     });
 

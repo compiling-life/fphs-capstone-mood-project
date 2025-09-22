@@ -175,11 +175,16 @@ app.get("/api/teachers/moods", (req, res) => {
 });
 
 app.get("/api/teachers", (req, res) => {
-  const teachers = users
-    .filter(u => u.role === "teacher")
-    .map(t => ({ teacherEmail: t.email, className: t.className, period: t.period }));
+    const teachers = users
+      .filter(u => u.role === "teacher")
+      .map(t => ({
+        teacherEmail: t.email,
+        className: t.className,
+        period: t.period
+      }));
     res.send(teachers);
-});
+  });
+  
 
 // Serve frontend (SPA)
 app.get("*", (req, res) => {
