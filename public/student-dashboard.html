@@ -104,29 +104,26 @@
 
     // Load student classes from login/session
     // Load student classes from session
-async function loadStudentClasses() {
+    async function loadStudentClasses() {
     try {
-        const res = await fetch('/api/auth/me');
-        if (!res.ok) throw new Error("Not logged in");
-        const data = await res.json();
+        const res = await fetch('/api/student/me');
+        const student = await res.json();
 
         const classSelect = document.getElementById('classSelect');
         classSelect.innerHTML = '<option value="">Select a class</option>';
 
-        if (data.selectedClasses && data.selectedClasses.length > 0) {
-            data.selectedClasses.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.className;
-                option.textContent = `${c.className} (${c.period})`;
-                classSelect.appendChild(option);
-            });
-        }
+        student.selectedClasses.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.className;
+            option.textContent = `${c.className} (${c.period})`;
+            classSelect.appendChild(option);
+        });
     } catch (err) {
-        console.error("Failed to load classes:", err);
-        alert("Session expired, please log in again.");
-        window.location.href = "index.html";
+        console.error("Failed to load student classes:", err);
     }
 }
+
+
 
     // Mood button selection
     document.querySelectorAll('#moodForm .grid button').forEach(btn => {
@@ -194,12 +191,11 @@ async function loadStudentClasses() {
         data: { labels: [], datasets: [{ label: 'Mood Score', data: [], borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.4, fill: true }] },
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
     });
-
-    // Init
+    
     window.addEventListener('DOMContentLoaded', () => {
-        loadStudentClasses();
-        loadMoodHistory();
-    });
+    loadStudentClasses().then(loadMoodHistory);
+});
+
 
     AOS.init();
     feather.replace();
