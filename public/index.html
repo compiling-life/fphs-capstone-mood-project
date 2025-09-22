@@ -247,18 +247,25 @@ async function login() {
 async function signup() {
     const email = document.querySelector('#signupModal input[type="email"]').value;
     const password = document.querySelector('#signupModal input[type="password"]').value;
-    const role = signupRoleSelect.value;
+    const role = document.querySelector('#signupRole').value;
 
     let body = { email, password, role };
 
-    if (role === 'teacher') {
-        const className = document.querySelector('#teacherFields input[name="className"]').value;
-        const period = document.querySelector('#teacherFields input[name="period"]').value;
+    if (role === "teacher") {
+        const className = document.querySelector('#teacherFields input[name="className"]')?.value;
+        const period = document.querySelector('#teacherFields input[name="period"]')?.value;
+        if (!className || !period) return alert("Teacher must provide class name and period");
         body.className = className;
         body.period = period;
-    } else {
-        const classSelects = studentClassesDiv.querySelectorAll('select');
-        const classes = Array.from(classSelects).map(s => JSON.parse(s.value));
+    } else if (role === "student") {
+        const classSelects = document.querySelectorAll('#studentClasses select');
+        if (classSelects.length !== 7) return alert("Student must select 7 classes");
+
+        const classes = Array.from(classSelects).map(s => {
+            try { return JSON.parse(s.value); }
+            catch { return null; }
+        });
+        if (classes.some(c => !c)) return alert("All classes must be selected");
         body.classes = classes;
     }
 
@@ -273,7 +280,6 @@ async function signup() {
         console.log("Signup response:", data);
 
         if (data.success) {
-            // Redirect based on role
             if (data.role === "student") {
                 window.location.href = 'student-dashboard.html';
             } else if (data.role === "teacher") {
@@ -287,6 +293,7 @@ async function signup() {
         alert("Error signing up");
     }
 }
+
 
 // Init AOS + Feather icons
 AOS.init();
