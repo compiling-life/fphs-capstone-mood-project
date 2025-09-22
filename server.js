@@ -59,11 +59,11 @@ let moods = [];
 
 // --- Auth Routes ---
 app.post("/api/auth/signup", (req, res) => {
-  const { email, password, role, teacherEmail } = req.body;
+  const { email, password, role, teacherEmail, className, period } = req.body;
   if (!email || !password || !role) return res.status(400).send("Missing fields");
   if (users.find(u => u.email === email)) return res.status(400).send("User exists");
 
-  users.push({ email, password, role, teacherEmail });
+  users.push({ email, password, role, teacherEmail, className, period });
   req.session.user = { email, role };
   res.send({ success: true, role });
 });
