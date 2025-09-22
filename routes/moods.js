@@ -19,7 +19,7 @@ router.get('/', async (req,res)=>{
     res.status(500).json({success:false,message:'Server error'});
   }
 });
-
+// -
 // Submit a new mood
 router.post('/', async (req,res)=>{
   try{
