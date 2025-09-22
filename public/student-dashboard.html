@@ -135,25 +135,32 @@
     let studentClasses = [];
 
     // Load student classes from backend
-    async function loadStudentClasses() {
+    async function loadClassesForStudent() {
     try {
-        const data = await apiRequest("/api/student/me"); // uses current session
+        const res = await fetch('/api/teachers');
+        const teachers = await res.json();
 
-        const classSelect = document.getElementById('classSelect');
-        classSelect.innerHTML = '<option value="">Select a class</option>';
+        const classSelect = document.getElementById('studentClasses');
+        classSelect.innerHTML = '';
 
-        if (data.selectedClasses && data.selectedClasses.length > 0) {
-            data.selectedClasses.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.className; // or `${c.className} (${c.period})` if you want
-                option.textContent = `${c.className} (${c.period})`;
-                classSelect.appendChild(option);
-            });
-        }
+        teachers.forEach(t => {
+            const option = document.createElement('option');
+            option.value = t.className;
+            option.dataset.period = t.period;
+            option.textContent = `${t.className} (${t.period}) - ${t.email}`;
+            classSelect.appendChild(option);
+        });
     } catch(err) {
-        console.error("Failed to load student classes:", err);
+        console.error("Failed to load classes:", err);
     }
 }
+
+// Call this when signup modal opens
+signupBtn.addEventListener("click", () => {
+    openModal("signupModal");
+    loadClassesForStudent();
+});
+
 
 // Call after page loads
 window.addEventListener('DOMContentLoaded', () => {

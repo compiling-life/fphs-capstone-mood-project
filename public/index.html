@@ -148,10 +148,14 @@
                 </div>
 
                 <!-- Student classes -->
-                <div class="mb-4" id="studentClassesContainer">
-                    <label class="block text-gray-700 mb-2">Select Your Classes (up to 7)</label>
-                    <select id="studentClassesSelect" name="studentClasses" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
-                </div>
+                <!-- Student selects multiple classes -->
+<div class="mb-6" id="studentClassesContainer">
+    <label class="block text-gray-700 mb-2">Select Classes (up to 7)</label>
+    <select id="studentClasses" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <!-- Options populated dynamically -->
+    </select>
+</div>
+
 
                 <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
             </form>
@@ -230,42 +234,50 @@
         }
 
         async function signup() {
-            const email = document.querySelector('#signupModal input[name="email"]').value;
-            const password = document.querySelector('#signupModal input[name="password"]').value;
-            const role = signupRoleSelect.value;
+    const email = document.querySelector('#signupModal input[name="email"]').value;
+    const password = document.querySelector('#signupModal input[name="password"]').value;
+    const role = signupRoleSelect.value;
 
-            let body = { email, password, role };
+    let body = { email, password, role };
 
-            if(role === "teacher") {
-                const className = document.querySelector('#teacherFields input[name="className"]').value;
-                const period = document.querySelector('#teacherFields input[name="period"]').value;
-                if(!className || !period) return alert("Teacher must provide class name and period");
-                body.className = className;
-                body.period = period;
-            } else {
-                const selectedOptions = Array.from(document.getElementById("studentClassesSelect").selectedOptions);
-                if(selectedOptions.length === 0) return alert("Please select at least one class");
-                body.selectedClasses = selectedOptions.map(o => JSON.parse(o.value));
-            }
+    if(role === "teacher") {
+        const className = document.querySelector('#teacherFields input[name="className"]').value;
+        const period = document.querySelector('#teacherFields input[name="period"]').value;
+        if(!className || !period) return alert("Teacher must provide class name and period");
+        body.className = className;
+        body.period = period;
+    } else if(role === "student") {
+        const selectedOptions = Array.from(document.getElementById('studentClasses').selectedOptions);
+        if(selectedOptions.length === 0) return alert("Please select at least one class");
+        if(selectedOptions.length > 7) return alert("Cannot select more than 7 classes");
 
-            try {
-                const res = await fetch('/api/auth/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
+        body.selectedClasses = selectedOptions.map(opt => {
+            return JSON.stringify({
+                className: opt.value,
+                period: opt.dataset.period || ""
+            });
+        });
+    }
 
-                const data = await res.json();
-                if(res.ok && data.success) {
-                    window.location.href = data.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
-                } else {
-                    alert(data.message || "Signup failed");
-                }
-            } catch(err) {
-                console.error(err);
-                alert("Error signing up");
-            }
+    try {
+        const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if(res.ok && data.success) {
+            window.location.href = data.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+        } else {
+            alert(data.message || "Signup failed");
         }
+    } catch(err) {
+        console.error(err);
+        alert("Error signing up");
+    }
+}
+
 
         // --- Load Teachers for dropdown ---
         async function loadTeachers() {
