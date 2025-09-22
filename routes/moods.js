@@ -1,22 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const Mood = require('../models/Mood'); 
-const User = require('../models/User'); // Assuming you have a User model
+const Mood = require('../models/Mood');
+const User = require('../models/User');
 
 // Submit a mood (student)
-router.post('/submit', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { userId, className, moodLevel, notes } = req.body;
         if (!userId || !className || !moodLevel) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
         const mood = new Mood({ userId, className, moodLevel, notes: notes || '' });
         await mood.save();
-        res.status(201).json({ message: 'Mood submitted successfully', mood });
+
+        // Optionally generate AI insight here
+        const aiInsight = "No AI insight yet"; // placeholder
+
+        res.status(201).json({ success: true, message: 'Mood submitted successfully', mood, aiInsight });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
@@ -24,10 +28,10 @@ router.post('/submit', async (req, res) => {
 router.get('/student/:userId', async (req, res) => {
     try {
         const moods = await Mood.find({ userId: req.params.userId }).sort({ timestamp: -1 });
-        res.json({ moods });
+        res.json(moods);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
@@ -36,7 +40,7 @@ router.get('/teacher/:teacherId', async (req, res) => {
     try {
         const teacherId = req.params.teacherId;
 
-        // Get all students for this teacher
+        // Find students who have classes with this teacher
         const students = await User.find({
             role: 'student',
             'selectedClasses.teacherId': teacherId
@@ -49,12 +53,11 @@ router.get('/teacher/:teacherId', async (req, res) => {
             .sort({ timestamp: -1 })
             .populate('userId', 'email');
 
-        res.json(moods); // send as array
+        res.json(moods);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
 
 module.exports = router;

@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -20,8 +19,20 @@ const UserSchema = new mongoose.Schema({
     enum: ['student', 'teacher'],
     required: true
   },
+  // For students: store selected classes as objects with className, period, teacherEmail
+  selectedClasses: {
+    type: [
+      {
+        className: { type: String, required: true },
+        period: { type: String },
+        teacherEmail: { type: String }
+      }
+    ],
+    default: []
+  },
+  // For students: the teacher’s email if needed
   teacherEmail: {
-    type: String, // Only relevant if role === 'student'
+    type: String,
     default: null
   },
   createdAt: {
@@ -32,13 +43,11 @@ const UserSchema = new mongoose.Schema({
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {
-  const user = this;
-
-  if (!user.isModified('password')) return next();
+  if (!this.isModified('password')) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (err) {
     next(err);

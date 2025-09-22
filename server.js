@@ -26,7 +26,7 @@ app.use(
   })
 );
 
-// Axios helper for Gemini AI
+// Gemini AI helper
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function getAIInsight(entry) {
@@ -51,13 +51,13 @@ async function getAIInsight(entry) {
   }
 }
 
-// In-memory storage (replace with DB for production)
+// In-memory storage
 let users = [];
 let moods = [];
 
 // --- Auth Routes ---
 app.post("/api/auth/signup", (req, res) => {
-  const { email, password, role, teacherEmail, className, period, selectedClasses } = req.body;
+  const { email, password, role, className, period, selectedClasses } = req.body;
 
   if (!email || !password || !role) return res.status(400).send("Missing fields");
   if (users.find(u => u.email === email)) return res.status(400).send("User exists");
@@ -72,10 +72,8 @@ app.post("/api/auth/signup", (req, res) => {
     if (!selectedClasses || !Array.isArray(selectedClasses) || selectedClasses.length === 0)
       return res.status(400).send("Student must select at least one class");
     if (selectedClasses.length > 7) return res.status(400).send("Cannot select more than 7 classes");
-
-    // Ensure each selected class is an object {className, period}
-    userData.selectedClasses = selectedClasses; // store objects directly
-}
+    userData.selectedClasses = selectedClasses;
+  }
 
   users.push(userData);
   req.session.user = { email, role, selectedClasses: userData.selectedClasses || [] };
@@ -100,16 +98,23 @@ app.post("/api/auth/logout", (req, res) => {
   res.send({ success: true });
 });
 
+app.get("/api/auth/me", (req, res) => {
+  if (!req.session.user) return res.status(401).json({ message: "Not logged in" });
+  res.json(req.session.user);
+});
+
 // --- Moods Routes ---
 app.post("/api/moods", async (req, res) => {
-  const { className, moodLevel, notes } = req.body;
   if (!req.session.user) return res.status(401).send("Not logged in");
+
+  const { className, moodLevel, notes } = req.body;
+  if (!className || !moodLevel) return res.status(400).send("Missing fields");
 
   const entry = {
     email: req.session.user.email,
     className,
     moodLevel,
-    notes,
+    notes: notes || '',
     date: new Date(),
   };
   moods.push(entry);
@@ -118,22 +123,13 @@ app.post("/api/moods", async (req, res) => {
   res.send({ success: true, aiInsight });
 });
 
-// ✅ Get current logged-in user
-app.get("/api/auth/me", (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ message: "Not logged in" });
-    }
-    res.json(req.session.user);
-});
-
-
 app.get("/api/moods", (req, res) => {
   if (!req.session.user) return res.status(401).send("Not logged in");
 
   if (req.session.user.role === "teacher") {
     const teacherMoods = moods.filter(m => {
       const student = users.find(u => u.email === m.email);
-      return student?.teacherEmail === req.session.user.email;
+      return student?.selectedClasses?.some(c => c.teacherEmail === req.session.user.email);
     });
     res.send(teacherMoods);
   } else {
@@ -143,30 +139,27 @@ app.get("/api/moods", (req, res) => {
 });
 
 app.get("/api/student/me", (req, res) => {
-    if (!req.session.user) return res.status(401).send("Not logged in");
-  
-    const user = users.find(u => u.email === req.session.user.email);
-    if (!user) return res.status(404).send("User not found");
-  
-    res.send({
-      email: user.email,
-      role: user.role,
-      selectedClasses: user.selectedClasses || []
-    });
+  if (!req.session.user) return res.status(401).send("Not logged in");
+
+  const user = users.find(u => u.email === req.session.user.email);
+  if (!user) return res.status(404).send("User not found");
+
+  res.send({
+    email: user.email,
+    role: user.role,
+    selectedClasses: user.selectedClasses || []
   });
-  
+});
 
 // --- Teachers Routes ---
 app.get("/api/teachers/students", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
-
   const students = users.filter(u => u.selectedClasses?.some(c => c.teacherEmail === req.session.user.email));
   res.send(students);
 });
 
 app.get("/api/teachers/moods", (req, res) => {
   if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
-
   const teacherMoods = moods.filter(m => {
     const student = users.find(u => u.email === m.email);
     return student?.selectedClasses?.some(c => c.teacherEmail === req.session.user.email);
@@ -175,18 +168,17 @@ app.get("/api/teachers/moods", (req, res) => {
 });
 
 app.get("/api/teachers", (req, res) => {
-    const teachers = users
-      .filter(u => u.role === "teacher")
-      .map(t => ({
-        teacherEmail: t.email,
-        className: t.className,
-        period: t.period
-      }));
-    res.send(teachers);
-  });
-  
+  const teachers = users
+    .filter(u => u.role === "teacher")
+    .map(t => ({
+      teacherEmail: t.email,
+      className: t.className,
+      period: t.period
+    }));
+  res.send(teachers);
+});
 
-// Serve frontend (SPA)
+// Serve frontend SPA
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });

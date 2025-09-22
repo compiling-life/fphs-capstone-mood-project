@@ -1,197 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard - EduMood</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Dashboard - EduMood</title>
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
-                        <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600" id="welcomeName">Welcome, Teacher!</span>
-                    <button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
-                </div>
-            </div>
+<nav class="bg-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 flex items-center">
+          <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
+          <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
         </div>
-    </nav>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Overview Cards -->
-        <div class="grid md:grid-cols-4 gap-6 mb-8" id="overviewCards"></div>
-
-        <!-- Class Comparison Chart -->
-        <div class="grid md:grid-cols-2 gap-8 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-right">
-                <h2 class="text-2xl font-bold mb-6">Class Mood Comparison</h2>
-                <div class="h-64"><canvas id="classChart"></canvas></div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-left">
-                <h2 class="text-2xl font-bold mb-6">Weekly Trends</h2>
-                <div class="h-64"><canvas id="trendChart"></canvas></div>
-            </div>
-        </div>
-
-        <!-- AI Insights -->
-        <div class="bg-white p-6 rounded-xl shadow-sm mb-8" data-aos="fade-up" id="aiInsights"></div>
-
-        <!-- Recent Submissions Table -->
-        <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Recent Submissions</h2>
-                <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center" id="exportBtn">
-                    <i data-feather="download" class="mr-2"></i>
-                    Export Report
-                </button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full" id="recentSubmissionsTable">
-                    <thead>
-                        <tr class="border-b">
-                            <th class="text-left py-3">Date</th>
-                            <th class="text-left py-3">Class</th>
-                            <th class="text-left py-3">Mood Level</th>
-                            <th class="text-left py-3">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="text-gray-600" id="welcomeName">Welcome, Teacher!</span>
+        <button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
+      </div>
     </div>
+  </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Overview Cards -->
+  <div class="grid md:grid-cols-4 gap-6 mb-8" id="overviewCards"></div>
+
+  <!-- Class Comparison Chart -->
+  <div class="grid md:grid-cols-2 gap-8 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-right">
+      <h2 class="text-2xl font-bold mb-6">Class Mood Comparison</h2>
+      <div class="h-64"><canvas id="classChart"></canvas></div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-left">
+      <h2 class="text-2xl font-bold mb-6">Weekly Trends</h2>
+      <div class="h-64"><canvas id="trendChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- AI Insights -->
+  <div class="bg-white p-6 rounded-xl shadow-sm mb-8" data-aos="fade-up" id="aiInsights"></div>
+
+  <!-- Recent Submissions Table -->
+  <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Recent Submissions</h2>
+      <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center" id="exportBtn">
+        <i data-feather="download" class="mr-2"></i>
+        Export Report
+      </button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full" id="recentSubmissionsTable">
+        <thead>
+          <tr class="border-b">
+            <th class="text-left py-3">Date</th>
+            <th class="text-left py-3">Class</th>
+            <th class="text-left py-3">Period</th>
+            <th class="text-left py-3">Student</th>
+            <th class="text-left py-3">Mood Level</th>
+            <th class="text-left py-3">Notes</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <script>
-async function apiRequest(url, method = "GET", body = null) {
-    const options = { method, headers: { "Content-Type": "application/json" } };
-    if (body) options.body = JSON.stringify(body);
-    const res = await fetch(url, options);
-    if (!res.ok) throw new Error(await res.text());
+async function apiRequest(url, method="GET", body=null){
+    const options={method, headers:{"Content-Type":"application/json"}};
+    if(body) options.body=JSON.stringify(body);
+    const res=await fetch(url, options);
+    if(!res.ok) throw new Error(await res.text());
     return res.json();
 }
 
-// Logout
-function logout() {
-    apiRequest('/api/auth/logout', 'POST').finally(() => window.location.href = 'index.html');
+function logout(){
+    apiRequest('/api/auth/logout','POST').finally(()=>window.location.href='index.html');
 }
 
-// Load teacher dashboard data
-async function loadTeacherDashboard() {
-    try {
-        // Get current teacher
-        const teacher = await apiRequest('/api/auth/me');
-        document.getElementById('welcomeName').textContent = `Welcome, ${teacher.email}`;
+async function loadTeacherDashboard(){
+    try{
+        const teacher=await apiRequest('/api/auth/me');
+        document.getElementById('welcomeName').textContent=`Welcome, ${teacher.email}`;
 
-        // Fetch moods for students of this teacher
-        const moods = await apiRequest(`/api/moods/teacher/${teacher._id}`);
+        const moods=await apiRequest(`/api/moods/teacher/${teacher._id}`);
 
-        // Overview cards
-        const overviewContainer = document.getElementById('overviewCards');
-        const totalStudents = [...new Set(moods.map(m => m.userId._id))].length;
-        const totalMoods = moods.length;
-        const avgMood = (moods.reduce((sum, m) => sum + m.moodLevel, 0) / totalMoods || 0).toFixed(2);
-        overviewContainer.innerHTML = `
+        // Overview Cards
+        const overviewContainer=document.getElementById('overviewCards');
+        const totalStudents=[...new Set(moods.map(m=>m.userId._id))].length;
+        const totalMoods=moods.length;
+        const avgMood=(moods.reduce((sum,m)=>sum+m.moodLevel,0)/totalMoods||0).toFixed(2);
+        overviewContainer.innerHTML=`
             <div class="bg-white p-4 rounded-xl shadow-sm">
-                <h3 class="text-lg font-semibold">Total Students</h3>
-                <p class="text-2xl font-bold">${totalStudents}</p>
+              <h3 class="text-lg font-semibold">Total Students</h3>
+              <p class="text-2xl font-bold">${totalStudents}</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm">
-                <h3 class="text-lg font-semibold">Total Submissions</h3>
-                <p class="text-2xl font-bold">${totalMoods}</p>
+              <h3 class="text-lg font-semibold">Total Submissions</h3>
+              <p class="text-2xl font-bold">${totalMoods}</p>
             </div>
             <div class="bg-white p-4 rounded-xl shadow-sm">
-                <h3 class="text-lg font-semibold">Average Mood</h3>
-                <p class="text-2xl font-bold">${avgMood}</p>
+              <h3 class="text-lg font-semibold">Average Mood</h3>
+              <p class="text-2xl font-bold">${avgMood}</p>
             </div>
         `;
 
         // Class Mood Comparison
-        const classes = [...new Set(moods.map(m => m.className))];
-        const avgMoodPerClass = classes.map(cls => {
-            const clsMoods = moods.filter(m => m.className === cls);
-            return (clsMoods.reduce((sum, m) => sum + m.moodLevel, 0) / clsMoods.length).toFixed(2);
+        const classes=[...new Set(moods.map(m=>m.className))];
+        const avgMoodPerClass=classes.map(cls=>{
+            const clsMoods=moods.filter(m=>m.className===cls);
+            return (clsMoods.reduce((sum,m)=>sum+m.moodLevel,0)/clsMoods.length).toFixed(2);
         });
-        classChart.data.labels = classes;
-        classChart.data.datasets[0].data = avgMoodPerClass;
-        classChart.data.datasets[0].backgroundColor = classes.map(() => '#3b82f6');
+        classChart.data.labels=classes;
+        classChart.data.datasets[0].data=avgMoodPerClass;
+        classChart.data.datasets[0].backgroundColor=classes.map(()=>'#3b82f6');
         classChart.update();
 
         // Weekly Trends
-        const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-        const trendDatasets = classes.map((cls, idx) => {
-            const data = weekdays.map(day => {
-                const dayMoods = moods.filter(m =>
-                    new Date(m.date).toLocaleDateString('en-US', { weekday: 'short' }) === day &&
-                    m.className === cls
+        const weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        trendChart.data.datasets=classes.map((cls,idx)=>{
+            const data=weekdays.map(day=>{
+                const dayMoods=moods.filter(m=>
+                    new Date(m.date).toLocaleDateString('en-US',{weekday:'short'})===day &&
+                    m.className===cls
                 );
-                return dayMoods.length ? (dayMoods.reduce((sum, m) => sum + m.moodLevel, 0) / dayMoods.length).toFixed(2) : null;
+                return dayMoods.length? (dayMoods.reduce((sum,m)=>sum+m.moodLevel,0)/dayMoods.length).toFixed(2) : null;
             });
-            const colors = ['#ef4444','#3b82f6','#a855f7','#10b981','#f59e0b'];
-            return { label: cls, data, borderColor: colors[idx % colors.length], tension: 0.4 };
+            const colors=['#ef4444','#3b82f6','#a855f7','#10b981','#f59e0b'];
+            return {label:cls,data,borderColor:colors[idx%colors.length],tension:0.4};
         });
-        trendChart.data.datasets = trendDatasets;
         trendChart.update();
 
-        // Populate Recent Submissions Table
-        const tbody = document.querySelector('#recentSubmissionsTable tbody');
-        tbody.innerHTML = '';
-        moods.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(m => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b';
-            tr.innerHTML = `
+        // Recent Submissions Table
+        const tbody=document.querySelector('#recentSubmissionsTable tbody');
+        tbody.innerHTML='';
+        moods.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(m=>{
+            const tr=document.createElement('tr');
+            tr.className='border-b';
+            tr.innerHTML=`
                 <td class="py-3">${new Date(m.date).toLocaleString()}</td>
                 <td class="py-3">${m.className}</td>
+                <td class="py-3">${m.period||'No Period'}</td>
+                <td class="py-3">${m.userId.email}</td>
                 <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
-                <td class="py-3">${m.notes || ''}</td>
+                <td class="py-3">${m.notes||''}</td>
             `;
             tbody.appendChild(tr);
         });
 
-        // Optional: AI Insights per submission
-        const aiInsightsContainer = document.getElementById('aiInsights');
-        aiInsightsContainer.innerHTML = moods.slice(0,5).map(m => `
+        // AI Insights
+        const aiInsightsContainer=document.getElementById('aiInsights');
+        aiInsightsContainer.innerHTML=moods.slice(0,5).map(m=>`
             <div class="mb-4 border-b pb-2">
                 <p><strong>${m.userId.email} (${m.className})</strong></p>
-                <p>${m.aiInsight || 'No AI insight yet'}</p>
+                <p>${m.aiInsight||'No AI insight yet'}</p>
             </div>
         `).join('');
 
-    } catch (err) {
-        console.error('Error loading teacher dashboard:', err);
+    }catch(err){
+        console.error('Error loading teacher dashboard:',err);
     }
 }
 
 // Initialize charts
-const classCtx = document.getElementById('classChart').getContext('2d');
-const classChart = new Chart(classCtx, {
-    type: 'bar',
-    data: { labels: [], datasets: [{ label: 'Average Mood', data: [], backgroundColor: [] }] },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
+const classCtx=document.getElementById('classChart').getContext('2d');
+const classChart=new Chart(classCtx,{
+    type:'bar',
+    data:{labels:[],datasets:[{label:'Average Mood',data:[],backgroundColor:[]}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:5}}}
 });
 
-const trendCtx = document.getElementById('trendChart').getContext('2d');
-const trendChart = new Chart(trendCtx, {
-    type: 'line',
-    data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [] },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
+const trendCtx=document.getElementById('trendChart').getContext('2d');
+const trendChart=new Chart(trendCtx,{
+    type:'line',
+    data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:5}}}
 });
 
-// Initial load
+// Load dashboard
 loadTeacherDashboard();
-
 AOS.init();
 feather.replace();
 </script>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Mood = require('../models/Mood'); // adjust path if needed
-const User = require('../models/User'); // if you want teacher info
+const Mood = require('../models/Mood');
+const User = require('../models/User');
 
 // Get all student moods (for dashboard)
 router.get('/moods', async (req, res) => {
@@ -9,18 +9,19 @@ router.get('/moods', async (req, res) => {
         const moods = await Mood.find()
             .sort({ timestamp: -1 })
             .populate('userId', 'email role'); // includes student email/role
-        res.json({ moods });
+
+        res.json({ success: true, moods });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
-// Get summary stats (optional, for overview cards)
+// Get summary stats (for overview cards)
 router.get('/summary', async (req, res) => {
     try {
-        const totalSubmissions = await Mood.countDocuments();
         const moods = await Mood.find();
+        const totalSubmissions = moods.length;
 
         let totalMood = 0;
         const classCounts = {};
@@ -31,28 +32,33 @@ router.get('/summary', async (req, res) => {
             classCounts[m.className].push(m.moodLevel);
         });
 
-        const averageMood = moods.length ? (totalMood / moods.length).toFixed(1) : 0;
+        const averageMood = moods.length ? (totalMood / moods.length).toFixed(2) : 0;
 
         // Find most stressed class (lowest average mood)
         let mostStressedClass = '';
         let lowestAvg = Infinity;
         for (const [cls, scores] of Object.entries(classCounts)) {
-            const avg = scores.reduce((a,b)=>a+b,0)/scores.length;
+            const avg = scores.reduce((a,b) => a+b, 0) / scores.length;
             if (avg < lowestAvg) {
                 lowestAvg = avg;
                 mostStressedClass = cls;
             }
         }
 
+        // Optional: calculate active students percentage
+        const uniqueStudents = new Set(moods.map(m => m.userId.toString()));
+        const activeStudentsPercent = moods.length ? ((uniqueStudents.size / moods.length) * 100).toFixed(2) : 0;
+
         res.json({
+            success: true,
             totalSubmissions,
             averageMood,
             mostStressedClass,
-            activeStudentsPercent: 87 // optional: calculate real if needed
+            activeStudentsPercent
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
