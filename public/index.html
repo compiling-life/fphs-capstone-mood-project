@@ -245,10 +245,12 @@ async function login() {
 }
 
 async function signup() {
-    const email = document.querySelector('#signupModal input[name="email"]').value;
-    const password = document.querySelector('#signupModal input[name="password"]').value;
+    const email = document.querySelector('#signupModal input[type="email"]').value;
+    const password = document.querySelector('#signupModal input[type="password"]').value;
     const role = signupRoleSelect.value;
+
     let body = { email, password, role };
+
     if (role === 'teacher') {
         const className = document.querySelector('#teacherFields input[name="className"]').value;
         const period = document.querySelector('#teacherFields input[name="period"]').value;
@@ -259,17 +261,31 @@ async function signup() {
         const classes = Array.from(classSelects).map(s => JSON.parse(s.value));
         body.classes = classes;
     }
+
     try {
         const res = await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
+
         const data = await res.json();
-        if (res.ok && data.success) {
-            window.location.href = data.role === 'student' ? 'student-dashboard.html' : 'teacher-dashboard.html';
-        } else alert(data.message || 'Signup failed');
-    } catch (err) { console.error(err); alert('Error signing up'); }
+        console.log("Signup response:", data);
+
+        if (data.success) {
+            // Redirect based on role
+            if (data.role === "student") {
+                window.location.href = 'student-dashboard.html';
+            } else if (data.role === "teacher") {
+                window.location.href = 'teacher-dashboard.html';
+            }
+        } else {
+            alert(data.message || "Signup failed");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error signing up");
+    }
 }
 
 // Init AOS + Feather icons
