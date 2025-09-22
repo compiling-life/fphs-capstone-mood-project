@@ -39,12 +39,11 @@ async function getAIInsight(entry) {
       },
       {
         headers: {
-          "Authorization": `Bearer ${GEMINI_API_KEY}`,
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
-
     return response.data?.candidates?.[0]?.content || "Could not generate insight.";
   } catch (err) {
     console.error("Gemini API error:", err.response?.data || err.message);
@@ -58,7 +57,7 @@ let moods = [];
 
 // --- Auth Routes ---
 app.post("/api/auth/signup", (req, res) => {
-  const { email, password, role, teacherEmail, className, period, classes } = req.body;
+  const { email, password, role, className, period, classes } = req.body;
 
   if (!email || !password || !role) return res.status(400).send({ success: false, message: "Missing fields" });
   if (users.find(u => u.email === email)) return res.status(400).send({ success: false, message: "User exists" });
@@ -69,7 +68,7 @@ app.post("/api/auth/signup", (req, res) => {
     newUser = { email, password, role, className, period };
   } else if (role === "student") {
     if (!classes || classes.length !== 7) return res.status(400).send({ success: false, message: "Student must provide 7 classes" });
-    newUser = { email, password, role, classes }; // classes = array of objects: { teacherEmail, className, period }
+    newUser = { email, password, role, classes }; // classes = array of { teacherEmail, className, period }
   } else {
     return res.status(400).send({ success: false, message: "Invalid role" });
   }
@@ -93,7 +92,7 @@ app.post("/api/auth/logout", (req, res) => {
   res.send({ success: true });
 });
 
-// Get all teachers for student signup dropdown
+// Get all teachers (for student dropdown)
 app.get("/api/teachers", (req, res) => {
   const teacherList = users
     .filter(u => u.role === "teacher")
