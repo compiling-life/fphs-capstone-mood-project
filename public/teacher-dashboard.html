@@ -33,35 +33,8 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Overview Cards -->
-        <div class="grid md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Total Submissions</h3>
-                    <i data-feather="file-text" class="text-blue-600"></i>
-                </div>
-                <p class="text-3xl font-bold text-blue-600">142</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up" data-aos-delay="100">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Average Mood</h3>
-                    <i data-feather="smile" class="text-green-600"></i>
-                </div>
-                <p class="text-3xl font-bold text-green-600">3.8/5</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up" data-aos-delay="200">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Most Stressed</h3>
-                    <i data-feather="alert-circle" class="text-red-600"></i>
-                </div>
-                <p class="text-3xl font-bold text-red-600">Mathematics</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up" data-aos-delay="300">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Active Students</h3>
-                    <i data-feather="users" class="text-purple-600"></i>
-                </div>
-                <p class="text-3xl font-bold text-purple-600">87%</p>
-            </div>
+        <div class="grid md:grid-cols-4 gap-6 mb-8" id="overviewCards">
+            <!-- Dynamically filled -->
         </div>
 
         <!-- Class Comparison Chart -->
@@ -81,37 +54,21 @@
         </div>
 
         <!-- AI Insights -->
-        <div class="bg-white p-6 rounded-xl shadow-sm mb-8" data-aos="fade-up">
-            <h2 class="text-2xl font-bold mb-6">AI Insights & Recommendations</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-3">
-                        <i data-feather="lightbulb" class="text-blue-600 mr-2"></i>
-                        <h3 class="font-semibold">Key Insight</h3>
-                    </div>
-                    <p class="text-blue-700">Mathematics shows the highest stress levels, particularly on Mondays and Wednesdays. Consider reviewing homework load and providing additional support.</p>
-                </div>
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-3">
-                        <i data-feather="heart" class="text-green-600 mr-2"></i>
-                        <h3 class="font-semibold">Wellbeing Suggestion</h3>
-                    </div>
-                    <p class="text-green-700">Implement 5-minute mindfulness exercises before math classes to help students manage stress and improve focus.</p>
-                </div>
-            </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm mb-8" data-aos="fade-up" id="aiInsights">
+            <!-- Dynamically filled -->
         </div>
 
         <!-- Recent Submissions Table -->
         <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">Recent Submissions</h2>
-                <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center">
+                <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center" id="exportBtn">
                     <i data-feather="download" class="mr-2"></i>
                     Export Report
                 </button>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full" id="recentSubmissionsTable">
                     <thead>
                         <tr class="border-b">
                             <th class="text-left py-3">Date</th>
@@ -121,24 +78,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-b">
-                            <td class="py-3">Today 14:30</td>
-                            <td class="py-3">Mathematics</td>
-                            <td class="py-3"><span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-sm">Stressed</span></td>
-                            <td class="py-3">Homework was very challenging</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-3">Today 13:15</td>
-                            <td class="py-3">Art</td>
-                            <td class="py-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm">Happy</span></td>
-                            <td class="py-3">Enjoyed the creative project</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-3">Today 11:45</td>
-                            <td class="py-3">Science</td>
-                            <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">Neutral</span></td>
-                            <td class="py-3">Lab experiment was interesting</td>
-                        </tr>
+                        <!-- Filled dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -146,76 +86,99 @@
     </div>
 
     <script>
-        function logout() {
-            localStorage.removeItem('userRole');
-            window.location.href = 'index.html';
+        async function apiRequest(url, method = "GET", body = null) {
+            const options = { method, headers: { "Content-Type": "application/json" } };
+            if (body) options.body = JSON.stringify(body);
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
         }
-
-        // Initialize class comparison chart
+        
+        // Logout
+        function logout() {
+            apiRequest('/api/auth/logout', 'POST').finally(() => {
+                window.location.href = 'index.html';
+            });
+        }
+        
+        // Load moods for teacher
+        async function loadTeacherMoods() {
+            try {
+                const moods = await apiRequest('/api/moods');
+        
+                // Prepare chart data
+                const classes = [...new Set(moods.map(m => m.className))];
+                const avgMoodPerClass = classes.map(cls => {
+                    const clsMoods = moods.filter(m => m.className === cls);
+                    const avg = clsMoods.reduce((sum, m) => sum + m.moodLevel, 0) / clsMoods.length;
+                    return avg;
+                });
+        
+                classChart.data.labels = classes;
+                classChart.data.datasets[0].data = avgMoodPerClass;
+                classChart.update();
+        
+                // Weekly trend data
+                const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                const trendDataSets = classes.map((cls, idx) => {
+                    const clsMoods = weekdays.map(day => {
+                        const dayMoods = moods.filter(m => new Date(m.date).toLocaleDateString('en-US', { weekday: 'short' }) === day && m.className === cls);
+                        if (dayMoods.length === 0) return null;
+                        return dayMoods.reduce((sum, m) => sum + m.moodLevel, 0) / dayMoods.length;
+                    });
+                    const colorPalette = ['#ef4444','#3b82f6','#a855f7','#10b981','#f59e0b'];
+                    return {
+                        label: cls,
+                        data: trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data || trendDataSets[idx]?.data,
+                        borderColor: colorPalette[idx % colorPalette.length],
+                        tension: 0.4
+                    };
+                });
+        
+                trendChart.data.datasets = trendDataSets;
+                trendChart.update();
+        
+                // Populate recent submissions table
+                const tbody = document.querySelector('table tbody');
+                tbody.innerHTML = '';
+                moods.reverse().forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b';
+                    tr.innerHTML = `
+                        <td class="py-3">${new Date(m.date).toLocaleString()}</td>
+                        <td class="py-3">${m.className}</td>
+                        <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
+                        <td class="py-3">${m.notes || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+        
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        
+        // Initialize charts
         const classCtx = document.getElementById('classChart').getContext('2d');
         const classChart = new Chart(classCtx, {
             type: 'bar',
-            data: {
-                labels: ['Math', 'Science', 'History', 'English', 'Art'],
-                datasets: [{
-                    label: 'Average Mood Score',
-                    data: [2.8, 3.5, 4.1, 3.9, 4.3],
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(59, 130, 246, 0.7)',
-                        'rgba(139, 92, 246, 0.7)',
-                        'rgba(16, 185, 129, 0.7)',
-                        'rgba(245, 158, 11, 0.7)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 5
-                    }
-                }
-            }
+            data: { labels: [], datasets: [{ label: 'Average Mood Score', data: [], backgroundColor: [] }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
         });
-
-        // Initialize trend chart
+        
         const trendCtx = document.getElementById('trendChart').getContext('2d');
         const trendChart = new Chart(trendCtx, {
             type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [
-                    {
-                        label: 'Math',
-                        data: [2.5, 3.0, 2.2, 3.1, 3.5],
-                        borderColor: '#ef4444',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Science',
-                        data: [3.2, 3.8, 3.5, 3.9, 4.1],
-                        borderColor: '#3b82f6',
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 5
-                    }
-                }
-            }
+            data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
         });
-
+        
+        // Initial load
+        loadTeacherMoods();
+        
         AOS.init();
         feather.replace();
-    </script>
+        </script>
+        
 </body>
 </html>

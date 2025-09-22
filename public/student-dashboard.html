@@ -39,7 +39,7 @@
                 <form id="moodForm">
                     <div class="mb-4">
                         <label class="block text-gray-700 mb-2">Class</label>
-                        <select class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select name="class" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
                             <option value="">Select a class</option>
                             <option value="math">Mathematics</option>
                             <option value="science">Science</option>
@@ -51,25 +51,26 @@
                     <div class="mb-4">
                         <label class="block text-gray-700 mb-2">Mood Level</label>
                         <div class="grid grid-cols-4 gap-2">
-                            <button type="button" class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                            <button type="button" class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" data-value="5">
                                 <i data-feather="smile"></i>
                             </button>
-                            <button type="button" class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                            <button type="button" class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" data-value="4">
                                 <i data-feather="meh"></i>
                             </button>
-                            <button type="button" class="p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors">
+                            <button type="button" class="p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors" data-value="3">
                                 <i data-feather="frown"></i>
                             </button>
-                            <button type="button" class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                            <button type="button" class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" data-value="1">
                                 <i data-feather="alert-circle"></i>
                             </button>
                         </div>
+                        <input type="hidden" name="moodValue" id="moodValue" required>
                     </div>
                     <div class="mb-6">
                         <label class="block text-gray-700 mb-2">Additional Notes (Optional)</label>
-                        <textarea class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="What's on your mind?"></textarea>
+                        <textarea name="notes" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="What's on your mind?"></textarea>
                     </div>
-                    <button type="button" onclick="submitMood()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Submit Mood</button>
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Submit Mood</button>
                 </form>
             </div>
 
@@ -85,14 +86,14 @@
                             <i data-feather="trending-up" class="text-blue-600 mr-2"></i>
                             <h3 class="font-semibold">Most Positive</h3>
                         </div>
-                        <p class="text-blue-600">Art Class</p>
+                        <p class="text-blue-600" id="mostPositiveClass">-</p>
                     </div>
                     <div class="bg-red-50 p-4 rounded-lg">
                         <div class="flex items-center mb-2">
                             <i data-feather="trending-down" class="text-red-600 mr-2"></i>
                             <h3 class="font-semibold">Most Stressful</h3>
                         </div>
-                        <p class="text-red-600">Mathematics</p>
+                        <p class="text-red-600" id="mostStressfulClass">-</p>
                     </div>
                 </div>
             </div>
@@ -102,7 +103,7 @@
         <div class="mt-8 bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
             <h2 class="text-2xl font-bold mb-6">Recent Submissions</h2>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full" id="recentMoodsTable">
                     <thead>
                         <tr class="border-b">
                             <th class="text-left py-3">Date</th>
@@ -112,18 +113,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-b">
-                            <td class="py-3">Today</td>
-                            <td class="py-3">Mathematics</td>
-                            <td class="py-3"><span class="bg-red-100 text-red-700 px-2 py-1 rounded-full text-sm">Stressed</span></td>
-                            <td class="py-3">Homework was challenging</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-3">Yesterday</td>
-                            <td class="py-3">Art</td>
-                            <td class="py-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm">Happy</span></td>
-                            <td class="py-3">Great project today!</td>
-                        </tr>
+                        <!-- Filled dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -131,45 +121,102 @@
     </div>
 
     <script>
-        function submitMood() {
-            // Simulate mood submission
-            alert('Mood submitted successfully!');
+        async function apiRequest(url, method = "GET", body = null) {
+            const options = { method, headers: { "Content-Type": "application/json" } };
+            if (body) options.body = JSON.stringify(body);
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
         }
-
+        
+        // Logout
         function logout() {
-            localStorage.removeItem('userRole');
-            window.location.href = 'index.html';
+            apiRequest('/api/auth/logout', 'POST').finally(() => {
+                window.location.href = 'index.html';
+            });
         }
-
-        // Initialize mood chart
+        
+        // Submit Mood
+        async function submitMood() {
+            try {
+                const className = document.querySelector('#moodForm select').value;
+                const moodBtns = document.querySelectorAll('#moodForm .grid button');
+                let moodLevel = null;
+        
+                moodBtns.forEach((btn, idx) => {
+                    if (btn.classList.contains('selected')) moodLevel = idx + 1;
+                });
+        
+                const notes = document.querySelector('#moodForm textarea').value;
+        
+                if (!className || !moodLevel) {
+                    alert("Please select a class and mood.");
+                    return;
+                }
+        
+                const data = await apiRequest('/api/moods', 'POST', { className, moodLevel, notes });
+                alert('Mood submitted successfully!\nAI Insight: ' + data.aiInsight);
+        
+                // Refresh mood history
+                loadMoodHistory();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+        
+        // Mood button selection
+        document.querySelectorAll('#moodForm .grid button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#moodForm .grid button').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            });
+        });
+        
+        // Load Mood History
+        async function loadMoodHistory() {
+            try {
+                const moods = await apiRequest('/api/moods');
+                const labels = moods.map(m => new Date(m.date).toLocaleDateString());
+                const data = moods.map(m => m.moodLevel);
+        
+                moodChart.data.labels = labels;
+                moodChart.data.datasets[0].data = data;
+                moodChart.update();
+        
+                // Update recent submissions table
+                const tbody = document.querySelector('table tbody');
+                tbody.innerHTML = '';
+                moods.reverse().forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b';
+                    tr.innerHTML = `
+                        <td class="py-3">${new Date(m.date).toLocaleString()}</td>
+                        <td class="py-3">${m.className}</td>
+                        <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
+                        <td class="py-3">${m.notes || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+        
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        
+        // Initialize chart
         const ctx = document.getElementById('moodChart').getContext('2d');
         const moodChart = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Mood Score',
-                    data: [3, 2, 4, 1, 3, 4, 5],
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 5
-                    }
-                }
-            }
+            data: { labels: [], datasets: [{ label: 'Mood Score', data: [], borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.4, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } } }
         });
-
+        
+        // Initial load
+        loadMoodHistory();
+        
         AOS.init();
         feather.replace();
-    </script>
+        </script>
+        
 </body>
 </html>
