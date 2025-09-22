@@ -5,7 +5,7 @@ import session from "express-session";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GoogleGenAI } from "@google/genai";
+import axios from "axios";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,10 +26,32 @@ app.use(
   })
 );
 
-// Initialize Gemini AI client
-const gemini = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+// Axios helper for Gemini AI
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+async function getAIInsight(entry) {
+  try {
+    const response = await axios.post(
+      "https://generativelanguage.googleapis.com/v1beta2/models/gemini-2.5-flash:generateText",
+      {
+        prompt: `Provide a short insight for a teacher based on this mood submission: ${JSON.stringify(entry)}`,
+        maxOutputTokens: 200,
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Gemini returns text in candidates array
+    return response.data?.candidates?.[0]?.content || "Could not generate insight.";
+  } catch (err) {
+    console.error("Gemini API error:", err.response?.data || err.message);
+    return "Could not generate insight.";
+  }
+}
 
 // In-memory storage (replace with DB for production)
 let users = [];
@@ -75,17 +97,7 @@ app.post("/api/moods", async (req, res) => {
   moods.push(entry);
 
   // Generate AI insight for teacher
-  let aiInsight = "";
-  try {
-    const response = await gemini.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Provide a short insight for a teacher based on this mood submission: ${JSON.stringify(entry)}`,
-    });
-    aiInsight = response.text;
-  } catch (err) {
-    console.error("Gemini API error:", err);
-    aiInsight = "Could not generate insight.";
-  }
+  const aiInsight = await getAIInsight(entry);
 
   res.send({ success: true, aiInsight });
 });
