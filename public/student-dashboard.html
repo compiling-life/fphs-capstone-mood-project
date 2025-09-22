@@ -183,12 +183,20 @@ async function loadMoodHistory(selectedClass = null) {
         // Update Recent Submissions Table
         const tbody = document.querySelector('#recentMoodsTable tbody');
         tbody.innerHTML = '';
+
         moods.slice().reverse().forEach(m => {
+            // Get the teacher email from the selectedClasses array
+            const classObj = m.studentId?.selectedClasses?.find(c => c.className === m.className);
+            const period = classObj?.period || 'No Period';
+            const teacherEmail = classObj?.teacherEmail || 'No Teacher';
+
             const tr = document.createElement('tr');
             tr.className = 'border-b';
             tr.innerHTML = `
                 <td class="py-3">${new Date(m.date).toLocaleString()}</td>
                 <td class="py-3">${m.className}</td>
+                <td class="py-3">${period}</td>
+                <td class="py-3">${teacherEmail}</td>
                 <td class="py-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">${m.moodLevel}</span></td>
                 <td class="py-3">${m.notes || ''}</td>
             `;
@@ -199,6 +207,7 @@ async function loadMoodHistory(selectedClass = null) {
         alert('Error loading mood history.');
     }
 }
+
 
 // Listen for class change
 document.getElementById('classSelect').addEventListener('change', (e) => {
