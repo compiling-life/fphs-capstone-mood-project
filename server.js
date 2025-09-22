@@ -118,6 +118,15 @@ app.post("/api/moods", async (req, res) => {
   res.send({ success: true, aiInsight });
 });
 
+// ✅ Get current logged-in user
+app.get("/api/auth/me", (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ message: "Not logged in" });
+    }
+    res.json(req.session.user);
+});
+
+
 app.get("/api/moods", (req, res) => {
   if (!req.session.user) return res.status(401).send("Not logged in");
 
@@ -168,8 +177,8 @@ app.get("/api/teachers/moods", (req, res) => {
 app.get("/api/teachers", (req, res) => {
   const teachers = users
     .filter(u => u.role === "teacher")
-    .map(t => ({ email: t.email, className: t.className, period: t.period }));
-  res.send(teachers);
+    .map(t => ({ teacherEmail: t.email, className: t.className, period: t.period }));
+    res.send(teachers);
 });
 
 // Serve frontend (SPA)
