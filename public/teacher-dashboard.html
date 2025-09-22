@@ -93,7 +93,7 @@ async function loadTeacherDashboard(){
         const teacher=await apiRequest('/api/auth/me');
         document.getElementById('welcomeName').textContent=`Welcome, ${teacher.email}`;
 
-        const moods=await apiRequest(`/api/moods/teacher/${teacher._id}`);
+        const moods = await apiRequest('/api/teachers/moods');
 
         // Overview Cards
         const overviewContainer=document.getElementById('overviewCards');

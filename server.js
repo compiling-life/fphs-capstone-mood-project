@@ -104,30 +104,28 @@ app.get("/api/auth/me", (req, res) => {
 });
 
 app.post("/api/moods", async (req, res) => {
-    const { className, moodLevel, notes } = req.body;
-    if (!req.session.user) return res.status(401).send("Not logged in");
+  const { className, moodLevel, notes } = req.body;
+  if (!req.session.user) return res.status(401).send("Not logged in");
 
-    const user = users.find(u => u.email === req.session.user.email);
-    if (!user) return res.status(404).send("User not found");
+  // Find the teacher for the selected class
+  const selectedClass = req.session.user.selectedClasses.find(c => c.className === className);
+  const teacherEmail = selectedClass ? selectedClass.teacherEmail : null;
 
-    // Find the teacher for this class
-    const selectedClass = user.selectedClasses.find(c => c.className === className);
-    if (!selectedClass) return res.status(400).send("Class not found for student");
+  const entry = {
+    email: req.session.user.email,
+    className,
+    moodLevel,
+    notes,
+    date: new Date(),
+    teacherEmail
+  };
 
-    const entry = {
-        email: user.email,
-        className,
-        moodLevel,
-        notes,
-        date: new Date(),
-        teacherEmail: selectedClass.teacherEmail // Add teacherEmail here
-    };
+  moods.push(entry);
 
-    moods.push(entry);
-
-    const aiInsight = await getAIInsight(entry);
-    res.send({ success: true, aiInsight });
+  const aiInsight = await getAIInsight(entry);
+  res.send({ success: true, aiInsight });
 });
+
 
 
 app.get("/api/moods", (req, res) => {
@@ -172,13 +170,13 @@ app.get("/api/teachers/students", (req, res) => {
 });
 
 app.get("/api/teachers/moods", (req, res) => {
-  if (!req.session.user || req.session.user.role !== "teacher") return res.status(401).send("Not authorized");
+  if (!req.session.user || req.session.user.role !== "teacher") 
+    return res.status(401).send("Not authorized");
 
-  // Filter moods that belong to this teacher
   const teacherMoods = moods.filter(m => m.teacherEmail === req.session.user.email);
-
   res.send(teacherMoods);
 });
+
 
 app.get("/api/teachers", (req, res) => {
   const teachers = users
