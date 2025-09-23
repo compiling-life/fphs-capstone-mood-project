@@ -310,6 +310,8 @@
     // --- Load Teachers for student class selection ---
 // --- Load Teachers for student class selection ---
 // --- Load Teachers for student class selection - FIXED ---
+// --- Load Teachers for student class selection - SIMPLIFIED ---
+// --- Load Teachers for student class selection - WITH PERIOD ---
 async function loadTeachers() {
     try {
         console.log('🔄 Loading teachers...');
@@ -322,50 +324,49 @@ async function loadTeachers() {
         classSelect.disabled = true;
 
         const response = await fetch("/api/teachers");
-        console.log('📡 API Response status:', response.status);
-
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            throw new Error(`Failed to load classes: ${response.status}`);
         }
 
         const teachers = await response.json();
-        console.log('👨‍🏫 Teachers data received:', teachers);
+        console.log('Teachers data:', teachers);
 
         classSelect.innerHTML = ""; // Clear loading message
 
         if (!teachers || teachers.length === 0) {
-            classSelect.innerHTML = '<option value="">No classes available yet. Teachers need to sign up first.</option>';
+            classSelect.innerHTML = '<option value="">No classes available yet.</option>';
             classSelect.disabled = true;
-            infoElement.textContent = 'No classes available. Ask your teacher to sign up first.';
-            console.log('ℹ️ No teachers found in database');
+            infoElement.textContent = 'No classes available. Teachers need to sign up first.';
         } else {
-            // Add each teacher's class to the dropdown
+            // Add each teacher's class to the dropdown - WITH PERIOD
             teachers.forEach(teacher => {
-                const option = document.createElement("option");
-                option.value = teacher.className;
-                option.textContent = `${teacher.className} (${teacher.period}) - ${teacher.teacherEmail}`;
-                option.dataset.period = teacher.period;
-                option.dataset.teacheremail = teacher.teacherEmail;
-                classSelect.appendChild(option);
+                if (teacher.className) {
+                    const option = document.createElement("option");
+                    option.value = teacher.className;
+                    // SHOW BOTH: "ClassName (Period) - TeacherEmail"
+                    option.textContent = `${teacher.className} (${teacher.period}) - ${teacher.teacherEmail || teacher.email}`;
+                    option.dataset.period = teacher.period;
+                    option.dataset.teacheremail = teacher.teacherEmail || teacher.email;
+                    classSelect.appendChild(option);
+                }
             });
             
             classSelect.disabled = false;
-            infoElement.textContent = 'Hold Ctrl/Cmd to select multiple classes (up to 7)';
-            console.log(`✅ Loaded ${teachers.length} teacher classes`);
+            infoElement.textContent = `Select your classes (${teachers.length} available, choose up to 7)`;
             
-            // Add multiple selection functionality
             setupMultipleSelection();
         }
 
     } catch (error) {
-        console.error('❌ Failed to load teachers:', error);
+        console.error('Failed to load teachers:', error);
         const classSelect = document.getElementById("studentClasses");
-        classSelect.innerHTML = '<option value="">Error loading classes. Please refresh the page.</option>';
+        classSelect.innerHTML = '<option value="">Error loading classes</option>';
         classSelect.disabled = true;
-        errorElement.textContent = 'Error: ' + error.message;
+        errorElement.textContent = 'Please refresh the page to try again.';
     }
 }
+
 
 // --- Multiple Selection Functionality ---
 function setupMultipleSelection() {
@@ -380,8 +381,10 @@ function setupMultipleSelection() {
         if (selectedOptions.length > 0) {
             selectedOptions.forEach(option => {
                 const badge = document.createElement('span');
-                badge.className = 'bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded';
-                badge.textContent = option.textContent.split(' - ')[0]; // Show just class name
+                badge.className = 'bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full mb-2';
+                // Show "ClassName (Period)" in the badge
+                const displayText = option.textContent.split(' - ')[0]; // Gets "ClassName (Period)"
+                badge.textContent = displayText;
                 selectedClassesList.appendChild(badge);
             });
             selectedClassesDiv.classList.remove('hidden');
@@ -392,7 +395,7 @@ function setupMultipleSelection() {
         // Show selection count
         const infoElement = document.getElementById("classSelectionInfo");
         if (selectedOptions.length > 7) {
-            infoElement.textContent = `❌ Too many classes selected (${selectedOptions.length}/7)`;
+            infoElement.textContent = `Too many classes selected (${selectedOptions.length}/7)`;
             infoElement.classList.add('text-red-500');
         } else {
             infoElement.textContent = `Selected ${selectedOptions.length} of 7 classes`;

@@ -6,34 +6,30 @@ import authMiddleware from '../middleware/auth.js';
 const router = express.Router();
 
 // 🔥 ADD THIS PUBLIC ENDPOINT - students need to see available classes before signing up
+// Public endpoint - with period
 router.get('/', async (req, res) => {
-    try {
-        console.log('🔍 Fetching teachers for class selection...');
-        
-        const teachers = await User.find({ role: 'teacher' })
-            .select('email className period')
-            .lean();
+  try {
+      const teachers = await User.find({ role: 'teacher' })
+          .select('email className period teacherEmail')
+          .lean();
 
-        console.log(`📊 Found ${teachers.length} teachers`);
+      // Ensure we have proper data
+      const teacherData = teachers.map(teacher => ({
+          teacherEmail: teacher.email,
+          className: teacher.className,
+          period: teacher.period || 'No Period', // Ensure period exists
+          email: teacher.email
+      }));
 
-        const teacherData = teachers.map(teacher => ({
-            teacherEmail: teacher.email,
-            className: teacher.className || 'Unnamed Class',
-            period: teacher.period || 'No Period',
-            email: teacher.email
-        }));
-
-        console.log('✅ Sending public teacher data:', teacherData);
-        res.json(teacherData);
-
-    } catch (error) {
-        console.error('❌ Error fetching teachers:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error fetching teachers',
-            error: error.message 
-        });
-    }
+      console.log('Sending teachers with periods:', teacherData);
+      res.json(teacherData);
+  } catch (error) {
+      console.error('Error fetching teachers:', error);
+      res.status(500).json({ 
+          success: false, 
+          message: 'Error fetching teachers'
+      });
+  }
 });
 
 // 🔥 PROTECTED ROUTES BELOW (require authentication)

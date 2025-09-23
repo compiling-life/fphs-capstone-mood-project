@@ -31,10 +31,10 @@ if (role === 'teacher') {
         return res.status(400).json({ success: false, message: 'Teacher must provide class name and period' });
     }
     
-    // Make sure these fields are properly set
+    // Make sure both fields are saved
     user.className = className;
-    user.period = period;
-    user.teacherEmail = email; // Set teacherEmail to their own email
+    user.period = period; // This was missing!
+    user.teacherEmail = email;
 }
 
         if (role === 'student') {
