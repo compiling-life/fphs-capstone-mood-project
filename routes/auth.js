@@ -1,8 +1,11 @@
-// auth.js
 const express = require('express');
 const router = express.Router();
-const User = require('./models/User'); // Adjust path if needed
+const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Add JWT middleware
+const authMiddleware = require('../middleware/auth'); // You'll need to create this
 
 // Signup route
 router.post('/signup', async (req, res) => {
@@ -16,29 +19,41 @@ router.post('/signup', async (req, res) => {
         if (existingUser) 
             return res.status(400).json({ success: false, message: 'User already exists' });
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        let userData = { email, password: hashedPassword, role };
+        const user = new User({ 
+            email, 
+            password, 
+            role 
+        });
 
         if (role === 'teacher') {
             if (!className || !period) 
                 return res.status(400).json({ success: false, message: 'Teacher must provide class name and period' });
-            userData.className = className;
-            userData.period = period;
+            user.className = className;
+            user.period = period;
         }
 
         if (role === 'student') {
             if (!selectedClasses || !Array.isArray(selectedClasses) || selectedClasses.length === 0) 
                 return res.status(400).json({ success: false, message: 'Student must select at least one class' });
 
-            // Store as array of objects
-            userData.selectedClasses = selectedClasses.map(c => JSON.parse(c));
+            user.selectedClasses = selectedClasses;
         }
 
-        const newUser = new User(userData);
-        await newUser.save();
+        await user.save();
 
-        res.status(201).json({ success: true, message: 'User created successfully', role: newUser.role });
+        // Create JWT token
+        const token = jwt.sign(
+            { userId: user._id, email: user.email, role: user.role }, 
+            process.env.JWT_SECRET || 'your-secret-key',
+            { expiresIn: '24h' }
+        );
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'User created successfully', 
+            token,
+            user: { id: user._id, email: user.email, role: user.role }
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -55,21 +70,30 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
-        const match = await bcrypt.compare(password, user.password);
+        const match = await user.comparePassword(password);
         if (!match) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
-        // Example: send user info for frontend routing
-        res.json({ success: true, role: user.role, userId: user._id, email: user.email });
+        // Create JWT token
+        const token = jwt.sign(
+            { userId: user._id, email: user.email, role: user.role }, 
+            process.env.JWT_SECRET || 'your-secret-key',
+            { expiresIn: '24h' }
+        );
+
+        res.json({ 
+            success: true, 
+            token,
+            user: { 
+                id: user._id, 
+                email: user.email, 
+                role: user.role,
+                selectedClasses: user.selectedClasses 
+            }
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
-// Optional: Middleware for routes that require login
-function requireLogin(req, res, next) {
-    if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
-    next();
-}
 
 module.exports = router;

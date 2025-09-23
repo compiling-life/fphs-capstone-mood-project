@@ -2,79 +2,96 @@ const express = require('express');
 const router = express.Router();
 const Mood = require('../models/Mood');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/auth');
 
-// Get all moods for the current user or teacher
-router.get('/', async (req,res)=>{
-  try{
-    const user = req.user; // From auth middleware
-    let moods;
-    if(user.role==='teacher'){
-      moods = await Mood.find().populate('userId','email role');
-    } else {
-      moods = await Mood.find({userId: user._id}).sort({date:-1});
-    }
-    res.json(moods);
-  } catch(err){
-    console.error(err);
-    res.status(500).json({success:false,message:'Server error'});
-  }
-});
-// -
+// Apply auth middleware to all routes
+router.use(authMiddleware);
+
 // Submit a new mood
-// Submit a new mood
-router.post('/', async (req,res)=>{
-  try{
-    const user = req.user;
-    const {className, moodLevel, notes} = req.body;
-    if(!className || !moodLevel) return res.status(400).json({success:false,message:'Class and mood required'});
+router.post('/', async (req, res) => {
+    try {
+        const user = req.user;
+        const { className, moodLevel, notes } = req.body;
+        
+        if (!className || !moodLevel) {
+            return res.status(400).json({ success: false, message: 'Class and mood level are required' });
+        }
 
-    // Find the period and teacher for that class
-    let period='', teacherEmail='';
-    if(user.role==='student'){
-      const cls = user.selectedClasses.find(c=>c.className===className);
-      if(cls){ 
-        period = cls.period || ''; 
-        teacherEmail = cls.teacherEmail || ''; 
-      }
+        // Find the teacher for this class
+        let teacherEmail = '';
+        if (user.role === 'student') {
+            const selectedClass = user.selectedClasses.find(c => c.className === className);
+            if (!selectedClass || !selectedClass.teacherEmail) {
+                return res.status(400).json({ success: false, message: 'Invalid class selected' });
+            }
+            teacherEmail = selectedClass.teacherEmail;
+        } else {
+            teacherEmail = user.email; // Teacher is submitting for their own class
+        }
+
+        const mood = new Mood({
+            userId: user._id,
+            className,
+            moodLevel: parseInt(moodLevel),
+            notes: notes || '',
+            teacherEmail
+        });
+
+        await mood.save();
+        
+        // Populate the saved mood for response
+        await mood.populate('userId', 'email role');
+        
+        res.json({ 
+            success: true, 
+            mood: {
+                _id: mood._id,
+                className: mood.className,
+                moodLevel: mood.moodLevel,
+                notes: mood.notes,
+                date: mood.date,
+                anonymousId: mood.anonymousId
+            }
+        });
+    } catch (err) {
+        console.error('Error submitting mood:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
-
-    const mood = new Mood({
-      userId: user._id,
-      className,
-      moodLevel,
-      notes,
-      date: new Date(),
-      period,
-      teacherEmail  // <-- add this
-    });
-    await mood.save();
-    res.json({success:true, mood});
-  } catch(err){
-    console.error(err);
-    res.status(500).json({success:false,message:'Server error'});
-  }
 });
 
-// GET /api/teachers/moods
-router.get('/teachers/moods', async (req, res) => {
-  try {
-      const teacher = req.user;
+// Get moods for current user
+router.get('/', async (req, res) => {
+    try {
+        const user = req.user;
+        let moods;
 
-      if (teacher.role !== 'teacher') {
-          return res.status(403).json({ success: false, message: "Access denied" });
-      }
-
-      // Find all moods where teacherEmail matches this teacher's email
-      const moods = await Mood.find({ teacherEmail: teacher.email })
-                              .populate('userId', 'email role')
-                              .sort({ date: -1 });
-
-      res.json({ success: true, moods });
-  } catch (err) {
-      console.error("Error fetching teacher moods:", err);
-      res.status(500).json({ success: false, message: "Server error" });
-  }
+        if (user.role === 'teacher') {
+            // Teacher sees all moods for their classes
+            moods = await Mood.find({ teacherEmail: user.email })
+                .populate('userId', 'email role')
+                .sort({ date: -1 });
+            
+            // Anonymize for teacher view
+            const anonymousMoods = moods.map(mood => ({
+                _id: mood._id,
+                className: mood.className,
+                moodLevel: mood.moodLevel,
+                notes: mood.notes,
+                date: mood.date,
+                anonymousId: mood.anonymousId
+            }));
+            
+            res.json(anonymousMoods);
+        } else {
+            // Student sees only their own moods
+            moods = await Mood.find({ userId: user._id })
+                .sort({ date: -1 });
+            res.json(moods);
+        }
+    } catch (err) {
+        console.error('Error fetching moods:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
 });
-
 
 module.exports = router;

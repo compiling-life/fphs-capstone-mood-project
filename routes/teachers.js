@@ -2,76 +2,68 @@ const express = require('express');
 const router = express.Router();
 const Mood = require('../models/Mood');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/auth');
+
+router.use(authMiddleware);
 
 // Get all moods for the logged-in teacher
 router.get('/moods', async (req, res) => {
-  try {
-      const teacher = req.user; // this assumes you're using auth middleware
-      if (!teacher || teacher.role !== 'teacher') {
-          return res.status(403).json({ success: false, message: 'Not authorized' });
-      }
-
-      // Find only moods where teacherEmail matches the logged-in teacher
-      const moods = await Mood.find({ teacherEmail: teacher.email })
-          .sort({ date: -1 })
-          .populate('userId', 'email role');
-
-      res.json({ success: true, moods });
-  } catch (err) {
-      console.error("Error fetching moods:", err);
-      res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// ✅ Summary stats (for overview cards)
-router.get('/summary', async (req, res) => {
     try {
-        const teacher = await User.findById(req.session.userId);
-        if (!teacher || teacher.role !== 'teacher') {
+        const teacher = req.user;
+        
+        if (teacher.role !== 'teacher') {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        const moods = await Mood.find()
-            .populate('userId', 'email role selectedClasses');
+        const moods = await Mood.find({ teacherEmail: teacher.email })
+            .populate('userId', 'email role')
+            .sort({ date: -1 });
 
-        // Filter moods for this teacher
-        const teacherMoods = moods.filter(mood =>
-            mood.userId?.selectedClasses?.some(cls =>
-                cls.className === mood.className &&
-                cls.teacherEmail === teacher.email
-            )
-        );
+        // Anonymize the data
+        const anonymousMoods = moods.map(mood => ({
+            _id: mood._id,
+            className: mood.className,
+            moodLevel: mood.moodLevel,
+            notes: mood.notes,
+            date: mood.date,
+            anonymousId: mood.anonymousId
+        }));
 
-        const totalSubmissions = teacherMoods.length;
-        const totalMood = teacherMoods.reduce((sum, m) => sum + m.moodLevel, 0);
-        const averageMood = totalSubmissions ? (totalMood / totalSubmissions).toFixed(2) : 0;
+        res.json({ success: true, moods: anonymousMoods });
+    } catch (err) {
+        console.error("Error fetching teacher moods:", err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
 
-        // Count per class
-        const classCounts = {};
-        teacherMoods.forEach(m => {
-            if (!classCounts[m.className]) classCounts[m.className] = [];
-            classCounts[m.className].push(m.moodLevel);
-        });
-
-        // Most stressed class
-        let mostStressedClass = '';
-        let lowestAvg = Infinity;
-        for (const [cls, scores] of Object.entries(classCounts)) {
-            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-            if (avg < lowestAvg) {
-                lowestAvg = avg;
-                mostStressedClass = cls;
-            }
+// Get teacher's students
+router.get('/students', async (req, res) => {
+    try {
+        const teacher = req.user;
+        
+        if (teacher.role !== 'teacher') {
+            return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        res.json({
-            success: true,
-            totalSubmissions,
-            averageMood,
-            mostStressedClass
+        const students = await User.find({
+            role: 'student',
+            'selectedClasses.teacherEmail': teacher.email
+        }).select('email selectedClasses');
+
+        // Anonymize student data
+        const anonymousStudents = students.map(student => {
+            const crypto = require('crypto');
+            const anonymousId = crypto.createHash('md5').update(student._id.toString()).digest('hex').substring(0, 8);
+            
+            return {
+                anonymousId,
+                selectedClasses: student.selectedClasses.filter(cls => cls.teacherEmail === teacher.email)
+            };
         });
+
+        res.json({ success: true, students: anonymousStudents });
     } catch (err) {
-        console.error(err);
+        console.error("Error fetching teacher's students:", err);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });

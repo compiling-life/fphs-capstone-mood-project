@@ -33,161 +33,266 @@
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <!-- Overview Cards -->
-  <div class="grid md:grid-cols-3 gap-6 mb-8" id="overviewCards"></div>
+  <div class="grid md:grid-cols-3 gap-6 mb-8" id="overviewCards">
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-600">Total Students</h3>
+      <p class="text-3xl font-bold text-indigo-600" id="totalStudents">0</p>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-600">Total Submissions</h3>
+      <p class="text-3xl font-bold text-green-600" id="totalSubmissions">0</p>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+      <h3 class="text-lg font-semibold text-gray-600">Average Mood</h3>
+      <p class="text-3xl font-bold text-blue-600" id="averageMood">0.00</p>
+    </div>
+  </div>
 
   <!-- Charts -->
   <div class="grid md:grid-cols-2 gap-8 mb-8">
-    <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-right">
+    <div class="bg-white p-6 rounded-xl shadow-sm">
       <h2 class="text-2xl font-bold mb-6">Class Mood Comparison</h2>
       <div class="h-64"><canvas id="classChart"></canvas></div>
     </div>
-    <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-left">
-      <h2 class="text-2xl font-bold mb-6">Weekly Trends</h2>
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+      <h2 class="text-2xl font-bold mb-6">Recent Mood Trends</h2>
       <div class="h-64"><canvas id="trendChart"></canvas></div>
     </div>
   </div>
 
   <!-- Recent Submissions Table -->
-  <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
-    <h2 class="text-2xl font-bold mb-6">Recent Submissions</h2>
+  <div class="bg-white p-6 rounded-xl shadow-sm">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Recent Mood Submissions</h2>
+      <button onclick="loadTeacherDashboard()" class="bg-indigo-100 text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-200 transition-colors">
+        <i data-feather="refresh-cw" class="w-4 h-4 inline mr-2"></i>Refresh
+      </button>
+    </div>
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
           <tr class="border-b">
-            <th class="text-left py-3">Date</th>
-            <th class="text-left py-3">Class</th>
-            <th class="text-left py-3">Period</th>
-            <th class="text-left py-3">Student</th>
-            <th class="text-left py-3">Mood</th>
-            <th class="text-left py-3">Notes</th>
+            <th class="text-left py-3 font-semibold">Date</th>
+            <th class="text-left py-3 font-semibold">Class</th>
+            <th class="text-left py-3 font-semibold">Student ID</th>
+            <th class="text-left py-3 font-semibold">Mood</th>
+            <th class="text-left py-3 font-semibold">Notes</th>
           </tr>
         </thead>
-        <tbody id="recentSubmissionsTableBody"></tbody>
+        <tbody id="recentSubmissionsTableBody">
+          <tr>
+            <td colspan="5" class="text-center py-4 text-gray-500">Loading mood submissions...</td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>
 </div>
 
 <script>
-// --- API Request Helper ---
+// --- API Helper with JWT Authentication ---
+function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
 async function apiRequest(url, method = "GET", body = null) {
-    const options = { method, headers: { "Content-Type": "application/json" } };
+    const token = getAuthToken();
+    const options = { 
+        method, 
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
+        }
+    };
     if (body) options.body = JSON.stringify(body);
+    
     const res = await fetch(url, options);
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+        if (res.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+            return;
+        }
+        throw new Error(await res.text());
+    }
     return res.json();
+}
+
+// Check if user is logged in
+function checkAuth() {
+    const token = getAuthToken();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (!token || user.role !== 'teacher') {
+        window.location.href = 'index.html';
+        return false;
+    }
+    return true;
 }
 
 // Logout
 function logout() {
-    apiRequest('/api/auth/logout','POST').finally(()=>window.location.href='index.html');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'index.html';
 }
 
 // --- Dashboard Loader ---
 async function loadTeacherDashboard() {
+    if (!checkAuth()) return;
+    
     try {
-        // Get teacher info
-        const teacher = await apiRequest('/api/auth/me');
-        document.getElementById('welcomeName').textContent = `Welcome, ${teacher.email}`;
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById('welcomeName').textContent = `Welcome, ${userData.email || 'Teacher'}!`;
 
-        // Get all moods
+        // Get moods for this teacher
         const moodRes = await apiRequest('/api/teachers/moods');
-        if (!moodRes.success) throw new Error(moodRes.message);
-        const moods = moodRes.moods;
+        const moods = moodRes.moods || [];
 
-        // --- Overview Cards ---
-        const totalStudents = [...new Set(moods.map(m => m.userId._id))].length;
-        const totalMoods = moods.length;
-        const avgMood = (moods.reduce((sum,m)=>sum+m.moodLevel,0)/totalMoods || 0).toFixed(2);
+        // Update overview cards
+        const uniqueStudents = new Set(moods.map(m => m.anonymousId)).size;
+        const totalSubmissions = moods.length;
+        const avgMood = totalSubmissions > 0 ? 
+            (moods.reduce((sum, m) => sum + m.moodLevel, 0) / totalSubmissions).toFixed(2) : 0;
 
-        document.getElementById('overviewCards').innerHTML = `
-            <div class="bg-white p-4 rounded-xl shadow-sm">
-              <h3 class="text-lg font-semibold">Total Students</h3>
-              <p class="text-2xl font-bold">${totalStudents}</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm">
-              <h3 class="text-lg font-semibold">Total Submissions</h3>
-              <p class="text-2xl font-bold">${totalMoods}</p>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm">
-              <h3 class="text-lg font-semibold">Average Mood</h3>
-              <p class="text-2xl font-bold">${avgMood}</p>
-            </div>
-        `;
+        document.getElementById('totalStudents').textContent = uniqueStudents;
+        document.getElementById('totalSubmissions').textContent = totalSubmissions;
+        document.getElementById('averageMood').textContent = avgMood;
 
-        // --- Class Mood Chart ---
-        const classes = [...new Set(moods.map(m=>m.className))];
-        const avgMoodPerClass = classes.map(cls => {
-            const clsMoods = moods.filter(m=>m.className===cls);
-            return (clsMoods.reduce((sum,m)=>sum+m.moodLevel,0)/clsMoods.length).toFixed(2);
+        // Update class comparison chart
+        const classes = [...new Set(moods.map(m => m.className))];
+        const classAverages = classes.map(cls => {
+            const classMoods = moods.filter(m => m.className === cls);
+            return classMoods.length > 0 ? 
+                (classMoods.reduce((sum, m) => sum + m.moodLevel, 0) / classMoods.length).toFixed(2) : 0;
         });
 
         classChart.data.labels = classes;
-        classChart.data.datasets[0].data = avgMoodPerClass;
+        classChart.data.datasets[0].data = classAverages;
         classChart.update();
 
-        // --- Weekly Trends Chart ---
-        const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-        trendChart.data.datasets = classes.map((cls,idx) => {
-            const data = weekdays.map(day => {
-                const dayMoods = moods.filter(m=>
-                    new Date(m.date).toLocaleDateString('en-US',{weekday:'short'})===day &&
-                    m.className===cls
-                );
-                return dayMoods.length ? (dayMoods.reduce((sum,m)=>sum+m.moodLevel,0)/dayMoods.length).toFixed(2) : null;
-            });
-            const colors = ['#ef4444','#3b82f6','#a855f7','#10b981','#f59e0b'];
-            return { label: cls, data, borderColor: colors[idx%colors.length], tension:0.4 };
+        // Update trend chart (last 7 days)
+        const last7Days = [...Array(7)].map((_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            return d.toLocaleDateString('en-US', { weekday: 'short' });
+        }).reverse();
+
+        trendChart.data.labels = last7Days;
+        trendChart.data.datasets[0].data = last7Days.map(day => {
+            const dayMoods = moods.filter(m => 
+                new Date(m.date).toLocaleDateString('en-US', { weekday: 'short' }) === day
+            );
+            return dayMoods.length > 0 ? 
+                (dayMoods.reduce((sum, m) => sum + m.moodLevel, 0) / dayMoods.length).toFixed(2) : null;
         });
         trendChart.update();
 
-        // --- Recent Submissions Table ---
+        // Update recent submissions table
         const tbody = document.getElementById('recentSubmissionsTableBody');
-        tbody.innerHTML = '';
-        moods.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(m=>{
-            // find student period (from their selectedClasses)
-            const clsInfo = m.userId.selectedClasses.find(c=>c.className===m.className && c.teacherEmail===teacher.email);
-            const period = clsInfo ? clsInfo.period : 'N/A';
+        
+        if (moods.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No mood submissions yet</td></tr>';
+            return;
+        }
 
-            const tr = document.createElement('tr');
-            tr.className = 'border-b';
-            tr.innerHTML = `
-                <td class="py-3">${new Date(m.date).toLocaleString()}</td>
-                <td class="py-3">${m.className}</td>
-                <td class="py-3">${period}</td>
-                <td class="py-3">${m.userId.email}</td>
-                <td class="py-3">${m.moodLevel}</td>
-                <td class="py-3">${m.notes || ''}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+        tbody.innerHTML = moods.slice(0, 10).map(mood => `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="py-3">${new Date(mood.date).toLocaleDateString()}</td>
+                <td class="py-3 font-medium">${mood.className}</td>
+                <td class="py-3">
+                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">Student ${mood.anonymousId}</span>
+                </td>
+                <td class="py-3">
+                    <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium ${
+                        mood.moodLevel >= 4 ? 'bg-green-100 text-green-800' :
+                        mood.moodLevel >= 3 ? 'bg-yellow-100 text-yellow-800' :
+                        mood.moodLevel >= 2 ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                    }">
+                        ${mood.moodLevel}/5
+                    </span>
+                </td>
+                <td class="py-3 text-gray-600">${mood.notes || '-'}</td>
+            </tr>
+        `).join('');
 
-    } catch(err) {
+    } catch (err) {
         console.error('Error loading teacher dashboard:', err);
-        alert('Failed to load teacher dashboard.');
+        document.getElementById('recentSubmissionsTableBody').innerHTML = 
+            '<tr><td colspan="5" class="text-center py-4 text-red-500">Error loading data</td></tr>';
     }
 }
 
 // --- Initialize Charts ---
 const classCtx = document.getElementById('classChart').getContext('2d');
-const classChart = new Chart(classCtx,{
-    type:'bar',
-    data:{labels:[], datasets:[{label:'Average Mood', data:[], backgroundColor:'#3b82f6'}]},
-    options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:5}}}
+const classChart = new Chart(classCtx, {
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Average Mood',
+            data: [],
+            backgroundColor: '#3b82f6',
+            borderColor: '#2563eb',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 5,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
 });
 
 const trendCtx = document.getElementById('trendChart').getContext('2d');
-const trendChart = new Chart(trendCtx,{
-    type:'line',
-    data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[]},
-    options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:5}}}
+const trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Average Mood',
+            data: [],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 5,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
 });
 
-// --- Load dashboard on page load ---
-window.addEventListener('DOMContentLoaded', ()=>{
-    loadTeacherDashboard();
-    AOS.init();
+// Auto-refresh every 30 seconds
+setInterval(loadTeacherDashboard, 30000);
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+    if (!checkAuth()) return;
+    
     feather.replace();
+    AOS.init();
+    loadTeacherDashboard();
 });
 </script>
 </body>
