@@ -83,16 +83,17 @@ router.post('/login', async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        res.json({ 
-            success: true, 
-            token,
-            user: { 
-                id: user._id, 
-                email: user.email, 
-                role: user.role,
-                selectedClasses: user.selectedClasses 
-            }
-        });
+        // In the login route, make sure you return:
+res.json({ 
+    success: true, 
+    token,
+    user: { 
+        id: user._id, 
+        email: user.email, 
+        role: user.role,
+        selectedClasses: user.selectedClasses 
+    }
+});
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
