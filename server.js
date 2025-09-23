@@ -52,8 +52,6 @@ app.use('/api/teachers', teacherRoutes);
 // --- CRITICAL: Add these missing endpoints that your frontend needs ---
 
 // Get all teachers (for student class selection)
-// Get all teachers (for student class selection)
-// Debug version of /api/teachers endpoint
 // Get all teachers (for student class selection) - FIXED VERSION
 app.get("/api/teachers", async (req, res) => {
   try {
