@@ -55,5 +55,26 @@ router.post('/', async (req,res)=>{
   }
 });
 
+// GET /api/teachers/moods
+router.get('/teachers/moods', async (req, res) => {
+  try {
+      const teacher = req.user;
+
+      if (teacher.role !== 'teacher') {
+          return res.status(403).json({ success: false, message: "Access denied" });
+      }
+
+      // Find all moods where teacherEmail matches this teacher's email
+      const moods = await Mood.find({ teacherEmail: teacher.email })
+                              .populate('userId', 'email role')
+                              .sort({ date: -1 });
+
+      res.json({ success: true, moods });
+  } catch (err) {
+      console.error("Error fetching teacher moods:", err);
+      res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 
 module.exports = router;
