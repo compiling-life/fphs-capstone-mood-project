@@ -230,74 +230,82 @@
     }
 
     async function signup() {
-        const email = document.getElementById('signupEmail').value;
-        const password = document.getElementById('signupPassword').value;
-        const role = document.getElementById('signupRole').value;
+    console.log('Signup function called');
+    
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const role = document.getElementById('signupRole').value;
 
-        if (!email || !password || !role) {
-            alert("Please fill in all required fields");
+    if (!email || !password || !role) {
+        alert("Please fill in all required fields");
+        return;
+    }
+
+    let body = { email, password, role };
+
+    if (role === "teacher") {
+        const className = document.getElementById('teacherClassName').value;
+        const period = document.getElementById('teacherPeriod').value;
+        
+        if (!className || !period) {
+            alert("Teacher must provide class name and period");
+            return;
+        }
+        
+        body.className = className;
+        body.period = period;
+    } else if (role === "student") {
+        const studentClasses = document.getElementById('studentClasses');
+        const selectedOptions = Array.from(studentClasses.selectedOptions);
+        
+        console.log('Selected classes:', selectedOptions);
+        
+        if (selectedOptions.length === 0) {
+            alert("Please select at least one class");
+            return;
+        }
+        
+        if (selectedOptions.length > 7) {
+            alert("Cannot select more than 7 classes");
             return;
         }
 
-        let body = { email, password, role };
-
-        if (role === "teacher") {
-            const className = document.getElementById('teacherClassName').value;
-            const period = document.getElementById('teacherPeriod').value;
-            
-            if (!className || !period) {
-                alert("Teacher must provide class name and period");
-                return;
-            }
-            
-            body.className = className;
-            body.period = period;
-        } else if (role === "student") {
-            const selectedOptions = Array.from(document.getElementById('studentClasses').selectedOptions);
-            
-            if (selectedOptions.length === 0) {
-                alert("Please select at least one class");
-                return;
-            }
-            
-            if (selectedOptions.length > 7) {
-                alert("Cannot select more than 7 classes");
-                return;
-            }
-
-            body.selectedClasses = selectedOptions.map(opt => ({
-                className: opt.value,
-                period: opt.dataset.period || '',
-                teacherEmail: opt.dataset.teacheremail || ''
-            }));
-        }
-
-        try {
-            const response = await fetch('/api/auth/signup', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                // Store token and user data
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                alert("Signup successful! Redirecting...");
-                window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
-            } else {
-                alert(data.message || "Signup failed. Please try again.");
-            }
-        } catch (error) {
-            console.error('Signup error:', error);
-            alert("Error signing up. Please try again.");
-        }
+        // Fix: Get the correct data from options
+        body.selectedClasses = selectedOptions.map(opt => ({
+            className: opt.value,
+            period: opt.dataset.period,
+            teacherEmail: opt.dataset.teacheremail
+        }));
     }
+
+    console.log('Sending signup data:', body);
+
+    try {
+        const response = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Store token and user data
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            alert("Signup successful! Redirecting to dashboard...");
+            window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+        } else {
+            alert(data.message || "Signup failed. Please try again.");
+        }
+    } catch (error) {
+        console.error('Signup error:', error);
+        alert("Error signing up. Please check your connection and try again.");
+    }
+}
 
     // --- Load Teachers for student class selection ---
 // --- Load Teachers for student class selection ---
