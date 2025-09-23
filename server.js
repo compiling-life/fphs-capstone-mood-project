@@ -73,29 +73,40 @@ app.get("/api/debug/users", async (req, res) => {
 });
 
 // Fix existing teachers - add this to server.js
+// Fix existing teachers - add this to server.js
 app.post('/api/fix-teachers', async (req, res) => {
   try {
       const User = (await import('./models/User.js')).default;
       
+      console.log('Fixing existing teachers...');
+      
       // Update first teacher
-      await User.findOneAndUpdate(
+      const teacher1 = await User.findOneAndUpdate(
           { email: 'farisfarag452@yahoo.com' },
           { 
               className: 'Mathematics',
               period: '1st Period'
-          }
+          },
+          { new: true } // Return updated document
       );
       
       // Update second teacher  
-      await User.findOneAndUpdate(
+      const teacher2 = await User.findOneAndUpdate(
           { email: 'robloxluther@gmail.com' },
           { 
               className: 'Science',
               period: '2nd Period'
-          }
+          },
+          { new: true }
       );
       
-      res.json({ success: true, message: 'Teachers updated with class names' });
+      console.log('Updated teachers:', teacher1, teacher2);
+      
+      res.json({ 
+          success: true, 
+          message: 'Teachers updated with class names',
+          teachers: [teacher1, teacher2]
+      });
   } catch (error) {
       console.error('Error fixing teachers:', error);
       res.status(500).json({ success: false, error: error.message });

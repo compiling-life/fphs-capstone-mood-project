@@ -26,15 +26,18 @@ router.post('/signup', async (req, res) => {
         // In the signup route, make sure teacher data is saved:
 // In the signup route, fix the teacher data saving:
 // In the signup route, fix the teacher data saving:
+// Fix the teacher signup section - look for this part:
 if (role === 'teacher') {
     if (!className || !period) {
         return res.status(400).json({ success: false, message: 'Teacher must provide class name and period' });
     }
     
-    // Make sure both fields are saved
+    // 🔥 FIX: Make sure these fields are properly assigned to the user object
     user.className = className;
-    user.period = period; // This was missing!
-    user.teacherEmail = email;
+    user.period = period;
+    user.teacherEmail = email; // This should already be set
+    
+    console.log('Saving teacher with:', { className, period, email }); // Debug log
 }
 
         if (role === 'student') {
