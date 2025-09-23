@@ -57,37 +57,6 @@
     </div>
 </section>
 
-<!-- Features Section -->
-<section id="features" class="py-20 bg-white px-4">
-    <div class="max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold text-center text-gray-800 mb-16" data-aos="fade-up">Key Features</h2>
-        <!-- Focusing on teachers not receiving data for some reason-->
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="100">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-feather="user" class="text-white"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Anonymous Tracking</h3>
-                <p class="text-gray-600">Students can share their mood and stress levels anonymously, ensuring honest feedback without pressure.</p>
-            </div>
-            <div class="bg-green-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="200">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-feather="trending-up" class="text-white"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">AI Insights</h3>
-                <p class="text-gray-600">Smart analytics that identify stress patterns and provide actionable recommendations for teachers.</p>
-            </div>
-            <div class="bg-purple-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="300">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-feather="bar-chart-2" class="text-white"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Visual Reports</h3>
-                <p class="text-gray-600">Beautiful charts and graphs that make it easy to understand classroom mood trends over time.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- Auth Modals -->
 <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
@@ -97,16 +66,16 @@
                 <i data-feather="x"></i>
             </button>
         </div>
-        <form id="loginForm" onsubmit="event.preventDefault(); login();">
+        <form id="loginForm">
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Email</label>
-                <input type="email" name="email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div class="mb-6">
                 <label class="block text-gray-700 mb-2">Password</label>
-                <input type="password" name="password" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
+            <button type="button" onclick="login()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
         </form>
         <p class="text-center mt-4 text-gray-600">
             Don't have an account? <button onclick="switchToSignup()" class="text-indigo-600 hover:underline">Sign up</button>
@@ -122,41 +91,43 @@
                 <i data-feather="x"></i>
             </button>
         </div>
-        <form id="signupForm" onsubmit="event.preventDefault(); signup();">
+        <form id="signupForm">
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Email</label>
-                <input type="email" name="email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="email" id="signupEmail" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Password</label>
-                <input type="password" name="password" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-
-            <!-- Teacher fields -->
-            <div id="teacherFields" class="hidden mb-4">
-                <label class="block text-gray-700 mb-2">Class Name</label>
-                <input type="text" name="className" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <label class="block text-gray-700 mt-4 mb-2">Period</label>
-                <input type="text" name="period" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="signupPassword" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Role</label>
-                <select name="role" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" id="signupRole">
+                <select id="signupRole" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select Role</option>
                     <option value="student">Student</option>
                     <option value="teacher">Teacher</option>
                 </select>
             </div>
 
-            <!-- Student classes -->
-            <div class="mb-6" id="studentClassesContainer">
-                <label class="block text-gray-700 mb-2">Select Classes (up to 7)</label>
-                <select id="studentClasses" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <!-- Options populated dynamically -->
-                </select>
+            <!-- Teacher fields -->
+            <div id="teacherFields" class="hidden mb-4">
+                <label class="block text-gray-700 mb-2">Class Name</label>
+                <input type="text" id="teacherClassName" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 mt-4 mb-2">Period</label>
+                <input type="text" id="teacherPeriod" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
+            <!-- Student classes -->
+            <div id="studentClassesContainer" class="hidden mb-6">
+                <label class="block text-gray-700 mb-2">Select Classes (up to 7)</label>
+                <select id="studentClasses" multiple class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <!-- Options will be populated dynamically -->
+                </select>
+                <p class="text-sm text-gray-500 mt-2">No classes available. Ask your teacher to sign up first.</p>
+            </div>
+
+            <button type="button" onclick="signup()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
         </form>
         <p class="text-center mt-4 text-gray-600">
             Already have an account? <button onclick="switchToLogin()" class="text-indigo-600 hover:underline">Login</button>
@@ -166,12 +137,6 @@
 
 <script>
     // --- Modal Logic ---
-    const loginBtn = document.getElementById('loginBtn');
-    const signupBtn = document.getElementById('signupBtn');
-    const signupRoleSelect = document.getElementById('signupRole');
-    const teacherFields = document.getElementById('teacherFields');
-    const studentClassesContainer = document.getElementById('studentClassesContainer');
-
     function openModal(id) {
         const modal = document.getElementById(id);
         modal.classList.remove('hidden');
@@ -195,120 +160,193 @@
         openModal('loginModal');
     }
 
-    loginBtn.addEventListener('click', () => openModal('loginModal'));
-    signupBtn.addEventListener('click', switchToSignup);
+    document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
+    document.getElementById('signupBtn').addEventListener('click', switchToSignup);
+    document.getElementById('getStartedBtn').addEventListener('click', switchToSignup);
 
-    // Role change
-    signupRoleSelect.addEventListener('change', function() {
+    // Role change handler
+    document.getElementById('signupRole').addEventListener('change', function() {
+        const teacherFields = document.getElementById('teacherFields');
+        const studentClassesContainer = document.getElementById('studentClassesContainer');
+        
         if(this.value === "teacher") {
             teacherFields.classList.remove("hidden");
             studentClassesContainer.classList.add("hidden");
-        } else {
+        } else if(this.value === "student") {
             teacherFields.classList.add("hidden");
             studentClassesContainer.classList.remove("hidden");
             loadTeachers();
+        } else {
+            teacherFields.classList.add("hidden");
+            studentClassesContainer.classList.add("hidden");
         }
     });
 
     // --- Auth Functions ---
     async function login() {
-        const email = document.querySelector('#loginModal input[type="email"]').value;
-        const password = document.querySelector('#loginModal input[type="password"]').value;
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            alert("Please fill in all fields");
+            return;
+        }
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ email, password })
             });
-            const data = await res.json();
-            if(res.ok && data.success) {
-                window.location.href = data.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Store token and user data
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                // Redirect to appropriate dashboard
+                window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
             } else {
-                alert(data.message || "Login failed");
+                alert(data.message || "Login failed. Please check your credentials.");
             }
-        } catch(err) {
-            console.error(err);
-            alert("Error logging in");
+        } catch (error) {
+            console.error('Login error:', error);
+            alert("Error logging in. Please try again.");
         }
     }
 
     async function signup() {
-        const email = document.querySelector('#signupModal input[name="email"]').value;
-        const password = document.querySelector('#signupModal input[name="password"]').value;
-        const role = signupRoleSelect.value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const role = document.getElementById('signupRole').value;
+
+        if (!email || !password || !role) {
+            alert("Please fill in all required fields");
+            return;
+        }
 
         let body = { email, password, role };
 
-        if(role === "teacher") {
-            const className = document.querySelector('#teacherFields input[name="className"]').value;
-            const period = document.querySelector('#teacherFields input[name="period"]').value;
-            if(!className || !period) return alert("Teacher must provide class name and period");
+        if (role === "teacher") {
+            const className = document.getElementById('teacherClassName').value;
+            const period = document.getElementById('teacherPeriod').value;
+            
+            if (!className || !period) {
+                alert("Teacher must provide class name and period");
+                return;
+            }
+            
             body.className = className;
             body.period = period;
-        } else {
+        } else if (role === "student") {
             const selectedOptions = Array.from(document.getElementById('studentClasses').selectedOptions);
-            if(selectedOptions.length === 0) return alert("Please select at least one class");
-            if(selectedOptions.length > 7) return alert("Cannot select more than 7 classes");
+            
+            if (selectedOptions.length === 0) {
+                alert("Please select at least one class");
+                return;
+            }
+            
+            if (selectedOptions.length > 7) {
+                alert("Cannot select more than 7 classes");
+                return;
+            }
 
-            body.selectedClasses = selectedOptions.map(opt => {
-                const val = JSON.parse(opt.value);
-                return { className: val.className, period: val.period, teacherEmail: opt.dataset.teacheremail || "" };
-            });
+            body.selectedClasses = selectedOptions.map(opt => ({
+                className: opt.value,
+                period: opt.dataset.period || '',
+                teacherEmail: opt.dataset.teacheremail || ''
+            }));
         }
 
         try {
-            const res = await fetch('/api/auth/signup', {
+            const response = await fetch('/api/auth/signup', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(body)
             });
 
-            const data = await res.json();
-            if(res.ok && data.success) {
-                window.location.href = data.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Store token and user data
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                alert("Signup successful! Redirecting...");
+                window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
             } else {
-                alert(data.message || "Signup failed");
+                alert(data.message || "Signup failed. Please try again.");
             }
-        } catch(err) {
-            console.error(err);
-            alert("Error signing up");
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert("Error signing up. Please try again.");
         }
     }
 
     // --- Load Teachers for student class selection ---
     async function loadTeachers() {
         try {
-            const res = await fetch("/api/teachers");
-            const teachers = await res.json();
-
+            const response = await fetch("/api/teachers");
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch teachers');
+            }
+            
+            const teachers = await response.json();
             const classSelect = document.getElementById("studentClasses");
+            
             classSelect.innerHTML = "";
-
-            teachers.forEach(t => {
+            
+            if (teachers.length === 0) {
+                classSelect.disabled = true;
+                return;
+            }
+            
+            teachers.forEach(teacher => {
                 const option = document.createElement("option");
-                option.value = JSON.stringify({ className: t.className, period: t.period });
-                option.textContent = `${t.className} (${t.period || 'No Period'}) - ${t.teacherEmail || 'No Teacher'}`;
-                option.dataset.teacheremail = t.teacherEmail || "";
+                option.value = teacher.className;
+                option.textContent = `${teacher.className} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || 'No Teacher'}`;
+                option.dataset.period = teacher.period || '';
+                option.dataset.teacheremail = teacher.teacherEmail || '';
                 classSelect.appendChild(option);
             });
 
             // Initialize Select2
-            $("#studentClasses").select2({
-                placeholder: "Select your classes (up to 7)",
-                maximumSelectionLength: 7,
-                width: '100%',
-                dropdownParent: $("#signupModal")
-            });
-
-        } catch (err) {
-            console.error("Failed to load teachers:", err);
+            if ($.fn.select2) {
+                $("#studentClasses").select2({
+                    placeholder: "Select your classes (up to 7)",
+                    maximumSelectionLength: 7,
+                    width: '100%'
+                });
+            }
+            
+        } catch (error) {
+            console.error("Failed to load teachers:", error);
+            document.getElementById("studentClasses").innerHTML = '<option value="">Error loading classes</option>';
         }
     }
 
-    // Init AOS + Feather icons
-    AOS.init();
-    feather.replace();
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if user is already logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role) {
+                window.location.href = user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+            }
+        }
+        
+        // Initialize libraries
+        if (window.AOS) AOS.init();
+        if (window.feather) feather.replace();
+    });
 </script>
 </body>
 </html>

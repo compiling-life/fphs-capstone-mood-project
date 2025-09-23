@@ -50,7 +50,12 @@ router.post('/signup', async (req, res) => {
             success: true, 
             message: 'User created successfully', 
             token,
-            user: { id: user._id, email: user.email, role: user.role, selectedClasses: user.selectedClasses }
+            user: { 
+                id: user._id, 
+                email: user.email, 
+                role: user.role, 
+                selectedClasses: user.selectedClasses 
+            }
         });
     } catch (err) {
         console.error(err);
