@@ -3,38 +3,24 @@ const router = express.Router();
 const Mood = require('../models/Mood');
 const User = require('../models/User');
 
-// ✅ Get all student moods (filtered by teacher’s classes)
+// Get all moods for the logged-in teacher
 router.get('/moods', async (req, res) => {
-    try {
-        // 1. Find the logged-in teacher
-        const teacher = await User.findById(req.session.userId);
-        if (!teacher || teacher.role !== 'teacher') {
-            return res.status(403).json({ success: false, message: 'Not authorized' });
-        }
+  try {
+      const teacher = req.user; // this assumes you're using auth middleware
+      if (!teacher || teacher.role !== 'teacher') {
+          return res.status(403).json({ success: false, message: 'Not authorized' });
+      }
 
-        // 2. Find all moods that belong to this teacher’s classes
-        // Match by teacher’s email in students’ selectedClasses
-        const moods = await Mood.find()
-            .sort({ date: -1 })
-            .populate('userId', 'email role selectedClasses');
+      // Find only moods where teacherEmail matches the logged-in teacher
+      const moods = await Mood.find({ teacherEmail: teacher.email })
+          .sort({ date: -1 })
+          .populate('userId', 'email role');
 
-        // 3. Filter moods so teacher only sees their classes
-        const filteredMoods = moods.filter(mood => {
-            const student = mood.userId;
-            if (!student || !student.selectedClasses) return false;
-
-            // Check if this mood’s class matches one of the student’s selected classes for THIS teacher
-            return student.selectedClasses.some(cls =>
-                cls.className === mood.className &&
-                cls.teacherEmail === teacher.email
-            );
-        });
-
-        res.json({ success: true, moods: filteredMoods });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
+      res.json({ success: true, moods });
+  } catch (err) {
+      console.error("Error fetching moods:", err);
+      res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // ✅ Summary stats (for overview cards)

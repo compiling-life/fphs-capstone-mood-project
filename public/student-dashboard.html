@@ -116,22 +116,40 @@ document.querySelectorAll('#moodForm button[data-value]').forEach(btn=>{
 });
 
 // Submit mood
+// Submit mood
 document.getElementById('moodForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const className = document.getElementById('classSelect').value;
+
+  const classSelect = document.getElementById('classSelect');
+  const selectedOption = classSelect.options[classSelect.selectedIndex];
+
+  const className = selectedOption.value;
+  const teacherEmail = selectedOption.dataset.teacher || null;
+  const period = selectedOption.dataset.period || null;
   const moodLevel = document.getElementById('moodValue').value;
   const notes = document.getElementById('notes').value;
+
   if(!className || !moodLevel) return alert("Select class and mood");
 
-  try{
-    await apiRequest('/api/moods','POST',{className, moodLevel, notes});
+  try {
+    await apiRequest('/api/moods','POST',{ 
+      className, 
+      period, 
+      teacherEmail, 
+      moodLevel, 
+      notes 
+    });
     alert('Mood submitted!');
     document.getElementById('moodForm').reset();
     selectedMood = null;
     document.querySelectorAll('#moodForm button[data-value]').forEach(b=>b.classList.remove('bg-indigo-600','text-white'));
     loadMoodHistory();
-  } catch(err){ console.error(err); alert('Failed to submit mood'); }
+  } catch(err){ 
+    console.error(err); 
+    alert('Failed to submit mood'); 
+  }
 });
+
 
 // Load mood history
 async function loadMoodHistory(){

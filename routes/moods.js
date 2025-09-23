@@ -21,6 +21,7 @@ router.get('/', async (req,res)=>{
 });
 // -
 // Submit a new mood
+// Submit a new mood
 router.post('/', async (req,res)=>{
   try{
     const user = req.user;
@@ -31,10 +32,21 @@ router.post('/', async (req,res)=>{
     let period='', teacherEmail='';
     if(user.role==='student'){
       const cls = user.selectedClasses.find(c=>c.className===className);
-      if(cls){ period=cls.period || ''; teacherEmail=cls.teacherEmail || ''; }
+      if(cls){ 
+        period = cls.period || ''; 
+        teacherEmail = cls.teacherEmail || ''; 
+      }
     }
 
-    const mood = new Mood({userId:user._id, className, moodLevel, notes, date:new Date(), period});
+    const mood = new Mood({
+      userId: user._id,
+      className,
+      moodLevel,
+      notes,
+      date: new Date(),
+      period,
+      teacherEmail  // <-- add this
+    });
     await mood.save();
     res.json({success:true, mood});
   } catch(err){
@@ -42,5 +54,6 @@ router.post('/', async (req,res)=>{
     res.status(500).json({success:false,message:'Server error'});
   }
 });
+
 
 module.exports = router;
