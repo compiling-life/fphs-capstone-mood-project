@@ -290,47 +290,59 @@
     }
 
     // --- Load Teachers for student class selection ---
-    async function loadTeachers() {
-        try {
-            const response = await fetch("/api/teachers");
-            
-            if (!response.ok) {
-                throw new Error('Failed to fetch teachers');
-            }
-            
-            const teachers = await response.json();
-            const classSelect = document.getElementById("studentClasses");
-            
-            classSelect.innerHTML = "";
-            
-            if (teachers.length === 0) {
-                classSelect.disabled = true;
-                return;
-            }
-            
-            teachers.forEach(teacher => {
+    // --- Load Teachers for student class selection ---
+async function loadTeachers() {
+    try {
+        console.log('Loading teachers...');
+        const response = await fetch("/api/teachers");
+        
+        console.log('Teachers response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch teachers: ' + response.status);
+        }
+        
+        const teachers = await response.json();
+        console.log('Teachers data:', teachers);
+        
+        const classSelect = document.getElementById("studentClasses");
+        const studentClassesContainer = document.getElementById("studentClassesContainer");
+        
+        classSelect.innerHTML = "";
+        
+        if (!teachers || teachers.length === 0) {
+            classSelect.innerHTML = '<option value="">No classes available yet. Teachers need to sign up first.</option>';
+            classSelect.disabled = true;
+            studentClassesContainer.querySelector('p').textContent = 'No classes available. Ask your teacher to sign up first.';
+            return;
+        }
+        
+        // Add classes to dropdown
+        teachers.forEach(teacher => {
+            // Only add if teacher has a class name
+            if (teacher.className) {
                 const option = document.createElement("option");
                 option.value = teacher.className;
-                option.textContent = `${teacher.className} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || 'No Teacher'}`;
+                option.textContent = `${teacher.className} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || teacher.email || 'Teacher'}`;
                 option.dataset.period = teacher.period || '';
-                option.dataset.teacheremail = teacher.teacherEmail || '';
+                option.dataset.teacheremail = teacher.teacherEmail || teacher.email || '';
                 classSelect.appendChild(option);
-            });
-
-            // Initialize Select2
-            if ($.fn.select2) {
-                $("#studentClasses").select2({
-                    placeholder: "Select your classes (up to 7)",
-                    maximumSelectionLength: 7,
-                    width: '100%'
-                });
             }
-            
-        } catch (error) {
-            console.error("Failed to load teachers:", error);
-            document.getElementById("studentClasses").innerHTML = '<option value="">Error loading classes</option>';
-        }
+        });
+        
+        // Enable the dropdown if we have classes
+        classSelect.disabled = false;
+        studentClassesContainer.querySelector('p').textContent = 'Select your classes (up to 7)';
+        
+        console.log('Classes loaded successfully');
+        
+    } catch (error) {
+        console.error("Failed to load teachers:", error);
+        const classSelect = document.getElementById("studentClasses");
+        classSelect.innerHTML = '<option value="">Error loading classes. Please refresh the page.</option>';
+        classSelect.disabled = true;
     }
+}
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {

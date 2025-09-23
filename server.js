@@ -52,23 +52,29 @@ app.use('/api/teachers', teacherRoutes);
 // --- CRITICAL: Add these missing endpoints that your frontend needs ---
 
 // Get all teachers (for student class selection)
+// Get all teachers (for student class selection)
 app.get("/api/teachers", async (req, res) => {
-    try {
-        const teachers = await User.find({ role: 'teacher' })
-            .select('email className period')
-            .lean();
-        
-        const teacherData = teachers.map(teacher => ({
-            teacherEmail: teacher.email,
-            className: teacher.className,
-            period: teacher.period
-        }));
-        
-        res.json(teacherData);
-    } catch (error) {
-        console.error("Error fetching teachers:", error);
-        res.status(500).json({ success: false, message: "Error fetching teachers" });
-    }
+  try {
+      console.log('Fetching teachers from database...');
+      const teachers = await User.find({ role: 'teacher' })
+          .select('email className period teacherEmail')
+          .lean();
+      
+      console.log('Found teachers:', teachers);
+      
+      const teacherData = teachers.map(teacher => ({
+          teacherEmail: teacher.email, // Use email as teacherEmail
+          className: teacher.className,
+          period: teacher.period,
+          email: teacher.email // Include email for reference
+      }));
+      
+      console.log('Sending teacher data:', teacherData);
+      res.json(teacherData);
+  } catch (error) {
+      console.error("Error fetching teachers:", error);
+      res.status(500).json({ success: false, message: "Error fetching teachers" });
+  }
 });
 
 // Get current user info
