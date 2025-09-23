@@ -51,7 +51,7 @@
   <div class="bg-white p-6 rounded-xl shadow-sm" data-aos="fade-up">
     <h2 class="text-2xl font-bold mb-6">Recent Submissions</h2>
     <div class="overflow-x-auto">
-      <table class="w-full" id="recentSubmissionsTable">
+      <table class="w-full">
         <thead>
           <tr class="border-b">
             <th class="text-left py-3">Date</th>
@@ -91,15 +91,16 @@ async function loadTeacherDashboard() {
         document.getElementById('welcomeName').textContent = `Welcome, ${teacher.email}`;
 
         // Get all moods
-        const moods = await apiRequest('/api/teachers/moods');
+        const moodRes = await apiRequest('/api/teachers/moods');
+        if (!moodRes.success) throw new Error(moodRes.message);
+        const moods = moodRes.moods;
 
         // --- Overview Cards ---
         const totalStudents = [...new Set(moods.map(m => m.userId._id))].length;
         const totalMoods = moods.length;
         const avgMood = (moods.reduce((sum,m)=>sum+m.moodLevel,0)/totalMoods || 0).toFixed(2);
 
-        const overviewContainer = document.getElementById('overviewCards');
-        overviewContainer.innerHTML = `
+        document.getElementById('overviewCards').innerHTML = `
             <div class="bg-white p-4 rounded-xl shadow-sm">
               <h3 class="text-lg font-semibold">Total Students</h3>
               <p class="text-2xl font-bold">${totalStudents}</p>
@@ -123,7 +124,6 @@ async function loadTeacherDashboard() {
 
         classChart.data.labels = classes;
         classChart.data.datasets[0].data = avgMoodPerClass;
-        classChart.data.datasets[0].backgroundColor = classes.map(()=>'#3b82f6');
         classChart.update();
 
         // --- Weekly Trends Chart ---
@@ -145,12 +145,16 @@ async function loadTeacherDashboard() {
         const tbody = document.getElementById('recentSubmissionsTableBody');
         tbody.innerHTML = '';
         moods.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(m=>{
+            // find student period (from their selectedClasses)
+            const clsInfo = m.userId.selectedClasses.find(c=>c.className===m.className && c.teacherEmail===teacher.email);
+            const period = clsInfo ? clsInfo.period : 'N/A';
+
             const tr = document.createElement('tr');
             tr.className = 'border-b';
             tr.innerHTML = `
                 <td class="py-3">${new Date(m.date).toLocaleString()}</td>
                 <td class="py-3">${m.className}</td>
-                <td class="py-3">${m.period || 'No Period'}</td>
+                <td class="py-3">${period}</td>
                 <td class="py-3">${m.userId.email}</td>
                 <td class="py-3">${m.moodLevel}</td>
                 <td class="py-3">${m.notes || ''}</td>
@@ -168,7 +172,7 @@ async function loadTeacherDashboard() {
 const classCtx = document.getElementById('classChart').getContext('2d');
 const classChart = new Chart(classCtx,{
     type:'bar',
-    data:{labels:[], datasets:[{label:'Average Mood', data:[], backgroundColor:[]}]},
+    data:{labels:[], datasets:[{label:'Average Mood', data:[], backgroundColor:'#3b82f6'}]},
     options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:5}}}
 });
 
