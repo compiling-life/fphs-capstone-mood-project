@@ -53,38 +53,42 @@ app.use('/api/teachers', teacherRoutes);
 
 // Get all teachers (for student class selection)
 // Get all teachers (for student class selection) - FIXED VERSION
+// Get all teachers (for student class selection) - FIXED
 app.get("/api/teachers", async (req, res) => {
   try {
-      console.log('🔍 Fetching teachers from database...');
+      console.log('=== TEACHERS API CALLED ===');
       
-      // Check if User model is properly imported
-      if (!User) {
-          console.error('❌ User model not found');
-          return res.status(500).json({ error: 'User model not available' });
+      // Test database connection
+      if (mongoose.connection.readyState !== 1) {
+          console.error('Database not connected');
+          return res.status(500).json({ error: 'Database not connected' });
       }
 
-      const teachers = await User.find({ role: 'teacher' })
-          .select('email className period')
-          .lean();
+      // Find all teachers
+      const teachers = await User.find({ role: 'teacher' });
+      console.log(`Found ${teachers.length} teachers:`, teachers);
 
-      console.log('📊 Teachers found:', teachers);
+      // Format response
+      const teacherData = teachers.map(teacher => {
+          // Make sure we have the required fields
+          const teacherObj = {
+              teacherEmail: teacher.email,
+              className: teacher.className || 'Unnamed Class',
+              period: teacher.period || 'No Period',
+              email: teacher.email
+          };
+          console.log('Teacher data:', teacherObj);
+          return teacherObj;
+      });
 
-      // Format the data properly for the frontend
-      const teacherData = teachers.map(teacher => ({
-          teacherEmail: teacher.email,
-          className: teacher.className || 'Unnamed Class',
-          period: teacher.period || 'No Period',
-          email: teacher.email
-      }));
-
-      console.log('✅ Sending teacher data:', teacherData);
+      console.log('Sending teacher data:', teacherData);
       res.json(teacherData);
 
   } catch (error) {
-      console.error('❌ Error fetching teachers:', error);
+      console.error('❌ Teachers API error:', error);
       res.status(500).json({ 
           error: 'Failed to fetch teachers',
-          details: error.message 
+          message: error.message 
       });
   }
 });
@@ -170,6 +174,28 @@ app.use((error, req, res, next) => {
         message: "Internal server error",
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+});
+
+// Debug endpoint to see all users
+app.get("/api/debug/users", async (req, res) => {
+  try {
+      console.log('=== DEBUG: Fetching all users ===');
+      const allUsers = await User.find({})
+          .select('email role className period selectedClasses')
+          .lean();
+      
+      console.log('All users in database:', allUsers);
+      
+      res.json({
+          totalUsers: allUsers.length,
+          teachers: allUsers.filter(u => u.role === 'teacher'),
+          students: allUsers.filter(u => u.role === 'student'),
+          allUsers: allUsers
+      });
+  } catch (error) {
+      console.error('Debug error:', error);
+      res.status(500).json({ error: error.message });
+  }
 });
 
 // Start server

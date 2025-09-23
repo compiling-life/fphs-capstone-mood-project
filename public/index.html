@@ -293,59 +293,46 @@
 // --- Load Teachers for student class selection ---
 async function loadTeachers() {
     try {
-        console.log('🔄 Loading teachers...');
+        console.log('=== LOAD TEACHERS START ===');
         const classSelect = document.getElementById("studentClasses");
-        const studentClassesContainer = document.getElementById("studentClassesContainer");
         
-        // Show loading state
         classSelect.innerHTML = '<option value="">Loading classes...</option>';
         classSelect.disabled = true;
 
         const response = await fetch("/api/teachers");
-        console.log('📡 API Response status:', response.status);
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            console.error('API error:', errorText);
+            throw new Error(`API Error: ${response.status} - ${errorText}`);
         }
 
         const teachers = await response.json();
-        console.log('👨‍🏫 Teachers data received:', teachers);
+        console.log('Teachers API response:', teachers);
 
-        classSelect.innerHTML = ""; // Clear loading message
+        classSelect.innerHTML = "";
 
         if (!teachers || teachers.length === 0) {
-            // No teachers have signed up yet
-            classSelect.innerHTML = '<option value="">No classes available yet. Teachers need to sign up first.</option>';
-            classSelect.disabled = true;
-            studentClassesContainer.querySelector('p').textContent = 'No classes available. Ask your teacher to sign up first.';
-            console.log('ℹ️ No teachers found in database');
+            classSelect.innerHTML = '<option value="">No teachers have signed up yet</option>';
+            console.log('No teachers found');
         } else {
-            // Add each teacher's class to the dropdown
             teachers.forEach(teacher => {
-                if (teacher.className) {
-                    const option = document.createElement("option");
-                    option.value = teacher.className;
-                    option.textContent = `${teacher.className} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || teacher.email}`;
-                    option.dataset.period = teacher.period || '';
-                    option.dataset.teacheremail = teacher.teacherEmail || teacher.email;
-                    classSelect.appendChild(option);
-                }
+                console.log('Processing teacher:', teacher);
+                const option = document.createElement("option");
+                option.value = teacher.className;
+                option.textContent = `${teacher.className} (${teacher.period}) - ${teacher.teacherEmail}`;
+                classSelect.appendChild(option);
             });
-            
             classSelect.disabled = false;
-            studentClassesContainer.querySelector('p').textContent = 'Select your classes (up to 7)';
-            console.log(`✅ Loaded ${teachers.length} teacher classes`);
+            console.log(`Loaded ${teachers.length} classes`);
         }
 
     } catch (error) {
-        console.error('❌ Failed to load teachers:', error);
+        console.error('LOAD TEACHERS ERROR:', error);
         const classSelect = document.getElementById("studentClasses");
-        classSelect.innerHTML = '<option value="">Error loading classes. Please refresh the page.</option>';
-        classSelect.disabled = true;
-        
-        // Show detailed error for debugging
-        console.error('Error details:', error.message);
+        classSelect.innerHTML = '<option value="">Error: ' + error.message + '</option>';
     }
 }
 
