@@ -290,57 +290,62 @@
     }
 
     // --- Load Teachers for student class selection ---
-    // --- Load Teachers for student class selection ---
+// --- Load Teachers for student class selection ---
 async function loadTeachers() {
     try {
-        console.log('Loading teachers...');
-        const response = await fetch("/api/teachers");
-        
-        console.log('Teachers response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch teachers: ' + response.status);
-        }
-        
-        const teachers = await response.json();
-        console.log('Teachers data:', teachers);
-        
+        console.log('🔄 Loading teachers...');
         const classSelect = document.getElementById("studentClasses");
         const studentClassesContainer = document.getElementById("studentClassesContainer");
         
-        classSelect.innerHTML = "";
-        
+        // Show loading state
+        classSelect.innerHTML = '<option value="">Loading classes...</option>';
+        classSelect.disabled = true;
+
+        const response = await fetch("/api/teachers");
+        console.log('📡 API Response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const teachers = await response.json();
+        console.log('👨‍🏫 Teachers data received:', teachers);
+
+        classSelect.innerHTML = ""; // Clear loading message
+
         if (!teachers || teachers.length === 0) {
+            // No teachers have signed up yet
             classSelect.innerHTML = '<option value="">No classes available yet. Teachers need to sign up first.</option>';
             classSelect.disabled = true;
             studentClassesContainer.querySelector('p').textContent = 'No classes available. Ask your teacher to sign up first.';
-            return;
+            console.log('ℹ️ No teachers found in database');
+        } else {
+            // Add each teacher's class to the dropdown
+            teachers.forEach(teacher => {
+                if (teacher.className) {
+                    const option = document.createElement("option");
+                    option.value = teacher.className;
+                    option.textContent = `${teacher.className} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || teacher.email}`;
+                    option.dataset.period = teacher.period || '';
+                    option.dataset.teacheremail = teacher.teacherEmail || teacher.email;
+                    classSelect.appendChild(option);
+                }
+            });
+            
+            classSelect.disabled = false;
+            studentClassesContainer.querySelector('p').textContent = 'Select your classes (up to 7)';
+            console.log(`✅ Loaded ${teachers.length} teacher classes`);
         }
-        
-        // Add classes to dropdown
-        teachers.forEach(teacher => {
-            // Only add if teacher has a class name
-            if (teacher.className) {
-                const option = document.createElement("option");
-                option.value = teacher.className;
-                option.textContent = `${teacher.className} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || teacher.email || 'Teacher'}`;
-                option.dataset.period = teacher.period || '';
-                option.dataset.teacheremail = teacher.teacherEmail || teacher.email || '';
-                classSelect.appendChild(option);
-            }
-        });
-        
-        // Enable the dropdown if we have classes
-        classSelect.disabled = false;
-        studentClassesContainer.querySelector('p').textContent = 'Select your classes (up to 7)';
-        
-        console.log('Classes loaded successfully');
-        
+
     } catch (error) {
-        console.error("Failed to load teachers:", error);
+        console.error('❌ Failed to load teachers:', error);
         const classSelect = document.getElementById("studentClasses");
         classSelect.innerHTML = '<option value="">Error loading classes. Please refresh the page.</option>';
         classSelect.disabled = true;
+        
+        // Show detailed error for debugging
+        console.error('Error details:', error.message);
     }
 }
 
