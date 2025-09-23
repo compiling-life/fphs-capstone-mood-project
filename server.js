@@ -72,6 +72,36 @@ app.get("/api/debug/users", async (req, res) => {
     }
 });
 
+// Fix existing teachers - add this to server.js
+app.post('/api/fix-teachers', async (req, res) => {
+  try {
+      const User = (await import('./models/User.js')).default;
+      
+      // Update first teacher
+      await User.findOneAndUpdate(
+          { email: 'farisfarag452@yahoo.com' },
+          { 
+              className: 'Mathematics',
+              period: '1st Period'
+          }
+      );
+      
+      // Update second teacher  
+      await User.findOneAndUpdate(
+          { email: 'robloxluther@gmail.com' },
+          { 
+              className: 'Science',
+              period: '2nd Period'
+          }
+      );
+      
+      res.json({ success: true, message: 'Teachers updated with class names' });
+  } catch (error) {
+      console.error('Error fixing teachers:', error);
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Test data endpoint (for development)
 app.post("/api/test/setup", async (req, res) => {
     try {
