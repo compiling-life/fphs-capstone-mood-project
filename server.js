@@ -20,8 +20,11 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/edumood', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  ssl: true,
+  tlsAllowInvalidCertificates: true, // For development
+  // Or better: tlsCAFile: './ca-certificate.crt' // For production
 });
 
 mongoose.connection.on('connected', () => {
