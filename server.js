@@ -74,41 +74,81 @@ app.get("/api/debug/users", async (req, res) => {
 
 // Fix existing teachers - add this to server.js
 // Fix existing teachers - add this to server.js
-app.post('/api/fix-teachers', async (req, res) => {
+// Fix existing teachers - MORE SPECIFIC VERSION
+app.post('/api/fix-teachers-now', async (req, res) => {
   try {
       const User = (await import('./models/User.js')).default;
       
-      console.log('Fixing existing teachers...');
+      console.log('Fixing teachers with specific data...');
       
-      // Update first teacher
-      const teacher1 = await User.findOneAndUpdate(
+      // Update teachers with specific class data
+      await User.updateOne(
           { email: 'farisfarag452@yahoo.com' },
           { 
-              className: 'Mathematics',
-              period: '1st Period'
-          },
-          { new: true } // Return updated document
+              $set: {
+                  className: 'Mathematics',
+                  period: '1st Period'
+              }
+          }
       );
       
-      // Update second teacher  
-      const teacher2 = await User.findOneAndUpdate(
+      await User.updateOne(
           { email: 'robloxluther@gmail.com' },
           { 
-              className: 'Science',
-              period: '2nd Period'
-          },
-          { new: true }
+              $set: {
+                  className: 'Science', 
+                  period: '2nd Period'
+              }
+          }
       );
       
-      console.log('Updated teachers:', teacher1, teacher2);
+      // Verify the updates
+      const teachers = await User.find({ role: 'teacher' });
+      console.log('Updated teachers:', teachers);
       
       res.json({ 
           success: true, 
-          message: 'Teachers updated with class names',
-          teachers: [teacher1, teacher2]
+          message: 'Teachers fixed successfully',
+          teachers: teachers.map(t => ({ email: t.email, className: t.className, period: t.period }))
       });
   } catch (error) {
       console.error('Error fixing teachers:', error);
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Add this to server.js to update teachers with new schema
+app.post('/api/update-teachers-schema', async (req, res) => {
+  try {
+      const User = (await import('./models/User.js')).default;
+      
+      console.log('Updating teachers with new schema...');
+      
+      await User.updateMany(
+          { role: 'teacher' },
+          { 
+              $set: {
+                  className: 'General Class',
+                  period: '1st Period'
+              }
+          }
+      );
+      
+      const teachers = await User.find({ role: 'teacher' });
+      console.log('Updated teachers:', teachers);
+      
+      res.json({ 
+          success: true, 
+          message: 'Teachers updated with new schema fields',
+          teachers: teachers.map(t => ({ 
+              email: t.email, 
+              className: t.className, 
+              period: t.period,
+              role: t.role 
+          }))
+      });
+  } catch (error) {
+      console.error('Error updating teachers:', error);
       res.status(500).json({ success: false, error: error.message });
   }
 });

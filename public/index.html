@@ -230,11 +230,13 @@
     }
 
     async function signup() {
-    console.log('Signup function called');
+    console.log('=== SIGNUP FUNCTION START ===');
     
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
     const role = document.getElementById('signupRole').value;
+
+    console.log('Basic info:', { email, password, role });
 
     if (!email || !password || !role) {
         alert("Please fill in all required fields");
@@ -244,21 +246,26 @@
     let body = { email, password, role };
 
     if (role === "teacher") {
+        // 🔥 FIX: Get the teacher field values correctly
         const className = document.getElementById('teacherClassName').value;
         const period = document.getElementById('teacherPeriod').value;
+        
+        console.log('Teacher fields:', { className, period });
         
         if (!className || !period) {
             alert("Teacher must provide class name and period");
             return;
         }
         
+        // 🔥 FIX: Add className and period to the request body
         body.className = className;
         body.period = period;
+        
     } else if (role === "student") {
         const studentClasses = document.getElementById('studentClasses');
         const selectedOptions = Array.from(studentClasses.selectedOptions);
         
-        console.log('Selected classes:', selectedOptions);
+        console.log('Selected student classes:', selectedOptions);
         
         if (selectedOptions.length === 0) {
             alert("Please select at least one class");
@@ -270,7 +277,6 @@
             return;
         }
 
-        // Fix: Get the correct data from options
         body.selectedClasses = selectedOptions.map(opt => ({
             className: opt.value,
             period: opt.dataset.period,
@@ -278,7 +284,7 @@
         }));
     }
 
-    console.log('Sending signup data:', body);
+    console.log('Final request body:', body);
 
     try {
         const response = await fetch('/api/auth/signup', {
@@ -289,10 +295,12 @@
             body: JSON.stringify(body)
         });
 
+        console.log('Response status:', response.status);
+
         const data = await response.json();
+        console.log('Response data:', data);
 
         if (response.ok && data.success) {
-            // Store token and user data
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             
