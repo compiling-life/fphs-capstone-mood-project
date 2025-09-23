@@ -1,11 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import User from '../models/User.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-// Add JWT middleware
-const authMiddleware = require('../middleware/auth'); // You'll need to create this
+const router = express.Router();
 
 // Signup route
 router.post('/signup', async (req, res) => {
@@ -52,7 +50,7 @@ router.post('/signup', async (req, res) => {
             success: true, 
             message: 'User created successfully', 
             token,
-            user: { id: user._id, email: user.email, role: user.role }
+            user: { id: user._id, email: user.email, role: user.role, selectedClasses: user.selectedClasses }
         });
     } catch (err) {
         console.error(err);
@@ -96,4 +94,4 @@ router.post('/login', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

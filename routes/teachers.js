@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import Mood from '../models/Mood.js';
+import User from '../models/User.js';
+import authMiddleware from '../middleware/auth.js';
+
 const router = express.Router();
-const Mood = require('../models/Mood');
-const User = require('../models/User');
-const authMiddleware = require('../middleware/auth');
 
 router.use(authMiddleware);
 
@@ -68,4 +69,4 @@ router.get('/students', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

@@ -1,10 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const Mood = require('../models/Mood');
-const User = require('../models/User');
-const authMiddleware = require('../middleware/auth');
+import express from 'express';
+import Mood from '../models/Mood.js';
+import User from '../models/User.js';
+import authMiddleware from '../middleware/auth.js';
 
-// Apply auth middleware to all routes
+const router = express.Router();
+
+// Apply auth middleware to ALL routes
 router.use(authMiddleware);
 
 // Submit a new mood
@@ -38,9 +39,6 @@ router.post('/', async (req, res) => {
         });
 
         await mood.save();
-        
-        // Populate the saved mood for response
-        await mood.populate('userId', 'email role');
         
         res.json({ 
             success: true, 
@@ -94,4 +92,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

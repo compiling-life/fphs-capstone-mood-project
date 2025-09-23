@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const moodSchema = new mongoose.Schema({
   userId: {
@@ -40,10 +41,9 @@ const moodSchema = new mongoose.Schema({
 // Add anonymousId before saving
 moodSchema.pre('save', function(next) {
   if (!this.anonymousId) {
-    const crypto = require('crypto');
     this.anonymousId = crypto.createHash('md5').update(this.userId.toString()).digest('hex').substring(0, 8);
   }
   next();
 });
 
-module.exports = mongoose.model('Mood', moodSchema);
+export default mongoose.model('Mood', moodSchema);
