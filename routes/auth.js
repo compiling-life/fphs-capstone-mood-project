@@ -85,7 +85,7 @@ router.post('/signup', async (req, res) => {
             const msg = {
                 to: email,
                 from: {
-                    email: 'noreply@edumood.com', // This will need to be verified in SendGrid
+                    email: 'fphs.edumood@gmail.com', // This will need to be verified in SendGrid
                     name: 'EduMood'
                 },
                 subject: 'Your EduMood Verification Code',
