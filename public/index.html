@@ -222,9 +222,16 @@
 
 <script>
     function showCustomAlert(message) {
+    const modal = document.getElementById('customModal');
     document.getElementById('modalMessage').innerText = message;
-    document.getElementById('customModal').style.display = 'flex';
+    modal.style.display = 'flex';
+    
+    // Auto close after 2 seconds (2000 milliseconds)
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 2000);
 }
+
 
 function closeModal() {
     document.getElementById('customModal').style.display = 'none';
