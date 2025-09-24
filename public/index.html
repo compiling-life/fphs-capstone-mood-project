@@ -411,6 +411,7 @@ function hideCustomAlert() {
 
         // 4️⃣ Redirect to verification page
         showCustomAlert("Signup successful! Check your email for a verification code.");
+        closeModal('signupModal'); // Add this before redirect
         window.location.href = '/verify.html';
 
     } catch (err) {
