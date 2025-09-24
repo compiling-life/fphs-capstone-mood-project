@@ -398,11 +398,34 @@ function hideCustomAlert() {
         localStorage.setItem('pendingEmail', email);
 
         // 3️⃣ Redirect to verification page
-        showCustomAlert("Signup successful! Check your email for a verification code.");
-        closeModal('signupModal');
+        // 3️⃣ Redirect to verification page
+showCustomAlert("Signup successful! Check your email for a verification code.");
+closeModal('signupModal');
+
+// Wait for the alert to be visible, then redirect
+setTimeout(() => {
+    // Try different paths in case of routing issues
+    const verifyPaths = [
+        'verify.html',
+        '/verify.html',
+        './verify.html',
+        window.location.pathname.replace('index.html', 'verify.html')
+    ];
+    
+    // Try to redirect, if it fails, show manual link
+    try {
+        window.location.href = 'verify.html';
+    } catch (error) {
+        console.error('Redirect failed:', error);
+        // Fallback: show a message with a clickable link
+        showCustomAlert("Signup successful! Please click here to verify your email.");
         setTimeout(() => {
-            window.location.href = 'verify.html';
-        }, 1000); // slight delay so user sees alert
+            const link = document.createElement('a');
+            link.href = 'verify.html';
+            link.click();
+        }, 2000);
+    }
+}, 1500); // Increased delay to ensure alert is visible
 
     } catch (err) {
         console.error('Signup error:', err);
