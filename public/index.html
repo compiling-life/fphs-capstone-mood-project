@@ -379,46 +379,36 @@ function hideCustomAlert() {
     }
 
     try {
-        // 1️⃣ Create the user
-        const response = await fetch('/api/auth/signup', {
+        // 1️⃣ Create the user (or resend verification if exists)
+        const signupRes = await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        const data = await response.json();
+        const signupData = await signupRes.json();
 
-        if (!response.ok || !data.success) {
-            showCustomAlert(data.message || "Signup failed");
+        if (!signupRes.ok || !signupData.success) {
+            showCustomAlert(signupData.message || "Signup failed");
             return;
         }
 
-        console.log('User created successfully:', data);
+        console.log('User created / verification sent:', signupData);
 
-        // 2️⃣ Store email for verification page
+        // 2️⃣ Store pending email for verification page
         localStorage.setItem('pendingEmail', email);
 
-        // 3️⃣ Send verification code
-        try {
-            await fetch('/api/auth/send-verification', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            console.log('Verification code sent');
-        } catch (err) {
-            console.error('Error sending verification code:', err);
-        }
-
-        // 4️⃣ Redirect to verification page
+        // 3️⃣ Redirect to verification page
         showCustomAlert("Signup successful! Check your email for a verification code.");
-        closeModal('signupModal'); // Add this before redirect
-        window.location.href = '/verify.html';
+        setTimeout(() => {
+            window.location.href = '/verify.html';
+        }, 1000); // slight delay so user sees alert
 
     } catch (err) {
         console.error('Signup error:', err);
         showCustomAlert("Error signing up. Please try again.");
     }
 }
+
 
 // --- Debug version of loadTeachers() ---
 async function loadTeachers() {
