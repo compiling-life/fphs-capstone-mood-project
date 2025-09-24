@@ -21,6 +21,7 @@ function generateCode() {
 }
 
 // --- Signup route ---
+// --- Signup route ---
 router.post('/signup', async (req, res) => {
     console.log('=== SIGNUP API ENDPOINT HIT ===');
     console.log('Request body:', req.body);
@@ -85,21 +86,15 @@ router.post('/signup', async (req, res) => {
         await user.save();
         console.log('User saved successfully');
 
-        // Send verification email
-        console.log('Attempting to send email...');
-        await transporter.sendMail({
-            from: `"EduMood" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: 'Your EduMood Verification Code',
-            text: `Your verification code is: ${user.verificationCode}`
-        });
-        console.log('Email sent successfully');
-
+        // ⚠️ TEMPORARILY DISABLE EMAIL SENDING - JUST RETURN SUCCESS
+        console.log('Email sending temporarily disabled for testing');
+        
         console.log('Sending success response');
         res.status(201).json({ 
             success: true, 
-            message: 'User created successfully. Verification code sent to email.',
-            email
+            message: 'User created successfully. Verification code: ' + user.verificationCode,
+            email,
+            verificationCode: user.verificationCode // Include code for testing
         });
 
     } catch (err) {
