@@ -332,24 +332,31 @@ function hideCustomAlert() {
     const password = document.getElementById('signupPassword').value;
     const role = document.getElementById('signupRole').value;
 
+    console.log('Form values:', { email, password, role });
+
     if (!email || !password || !role) {
+        console.log('Missing required fields');
         showCustomAlert("Please fill in all required fields");
         return;
     }
 
     if ((role === "student" && !email.endsWith("@pwcs-edu.org")) ||
         (role === "teacher" && !email.endsWith("@pwcs.edu"))) {
+        console.log('Invalid email domain');
         showCustomAlert("Please use a valid PWCS email.");
         return;
     }
 
     let body = { email, password, role };
+    console.log('Base body:', body);
     
     if (role === "teacher") {
         const className = document.getElementById('teacherClassName').value;
         const period = document.getElementById('teacherPeriod').value;
+        console.log('Teacher fields:', { className, period });
         
         if (!className || !period) {
+            console.log('Missing teacher fields');
             showCustomAlert("Teacher must provide class name and period");
             return;
         }
@@ -360,13 +367,16 @@ function hideCustomAlert() {
     } else if (role === "student") {
         const studentClasses = document.getElementById('studentClasses');
         const selectedOptions = Array.from(studentClasses.selectedOptions);
+        console.log('Student selected classes:', selectedOptions);
         
         if (selectedOptions.length === 0) {
+            console.log('No classes selected');
             showCustomAlert("Please select at least one class");
             return;
         }
         
         if (selectedOptions.length > 7) {
+            console.log('Too many classes selected');
             showCustomAlert("Cannot select more than 7 classes");
             return;
         }
@@ -378,16 +388,26 @@ function hideCustomAlert() {
         }));
     }
 
+    console.log('Final request body:', body);
+
     try {
+        console.log('Sending request to /api/auth/signup...');
+        
         // 1️⃣ Create the user (or resend verification if exists)
         const signupRes = await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
+        
+        console.log('Response status:', signupRes.status);
+        console.log('Response headers:', signupRes.headers);
+        
         const signupData = await signupRes.json();
+        console.log('Response data:', signupData);
 
         if (!signupRes.ok || !signupData.success) {
+            console.log('Signup failed:', signupData.message);
             showCustomAlert(signupData.message || "Signup failed");
             return;
         }
@@ -396,36 +416,17 @@ function hideCustomAlert() {
 
         // 2️⃣ Store pending email for verification page
         localStorage.setItem('pendingEmail', email);
+        console.log('Stored pendingEmail in localStorage');
 
         // 3️⃣ Redirect to verification page
-        // 3️⃣ Redirect to verification page
-showCustomAlert("Signup successful! Check your email for a verification code.");
-closeModal('signupModal');
-
-// Wait for the alert to be visible, then redirect
-setTimeout(() => {
-    // Try different paths in case of routing issues
-    const verifyPaths = [
-        'verify.html',
-        '/verify.html',
-        './verify.html',
-        window.location.pathname.replace('index.html', 'verify.html')
-    ];
-    
-    // Try to redirect, if it fails, show manual link
-    try {
-        window.location.href = 'verify.html';
-    } catch (error) {
-        console.error('Redirect failed:', error);
-        // Fallback: show a message with a clickable link
-        showCustomAlert("Signup successful! Please click here to verify your email.");
+        console.log('Attempting redirect to verify.html');
+        showCustomAlert("Signup successful! Check your email for a verification code.");
+        closeModal('signupModal');
+        
         setTimeout(() => {
-            const link = document.createElement('a');
-            link.href = 'verify.html';
-            link.click();
-        }, 2000);
-    }
-}, 1500); // Increased delay to ensure alert is visible
+            console.log('Redirecting now...');
+            window.location.href = 'verify.html';
+        }, 1000);
 
     } catch (err) {
         console.error('Signup error:', err);
