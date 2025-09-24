@@ -372,10 +372,10 @@ function hideCustomAlert() {
         return;
     }
 
-    if ((role === "student" && !email.endsWith("@pwcs-edu.org")) ||
-        (role === "teacher" && !email.endsWith("@pwcs.edu"))) {
+    if ((role === "student" && !email.endsWith("@gmail.com")) ||
+        (role === "teacher" && !email.endsWith("@gmail.com"))) {
         console.log('Invalid email domain');
-        showCustomAlert("Please use a valid PWCS email.");
+        showCustomAlert("Please use a valid GMAIL address.");
         return;
     }
 
