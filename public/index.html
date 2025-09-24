@@ -215,27 +215,27 @@
 <div class="modal-overlay" id="customModal">
     <div class="modal-box">
       <p id="modalMessage"></p>
-      <button onclick="closeModal()">OK</button>
+      <button onclick="hideCustomAlert()">OK</button>
     </div>
   </div>
   
 
 <script>
-    function showCustomAlert(message) {
+function showCustomAlert(message) {
     const modal = document.getElementById('customModal');
     document.getElementById('modalMessage').innerText = message;
     modal.style.display = 'flex';
     
-    // Auto close after 2 seconds (2000 milliseconds)
+    // Auto close after 2 seconds
     setTimeout(() => {
-        modal.style.display = 'none';
+        hideCustomAlert();
     }, 2000);
 }
 
-
-function closeModal() {
+function hideCustomAlert() {
     document.getElementById('customModal').style.display = 'none';
 }
+
 
     // --- Modal Logic ---
     function openModal(id) {
