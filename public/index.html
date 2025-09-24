@@ -332,36 +332,36 @@ function hideCustomAlert() {
     const password = document.getElementById('signupPassword').value;
     const role = document.getElementById('signupRole').value;
 
-    console.log('Basic info:', { email, password, role });
-
     if (!email || !password || !role) {
         showCustomAlert("Please fill in all required fields");
         return;
     }
 
-    let body = { email, password, role };
+    if ((role === "student" && !email.endsWith("@pwcs-edu.org")) ||
+        (role === "teacher" && !email.endsWith("@pwcs.edu"))) {
+        showCustomAlert("Please use a valid PWCS email.");
+        return;
+    }
 
+    localStorage.setItem('pendingEmail', email);
+
+    let body = { email, password, role };
+    
     if (role === "teacher") {
-        // 🔥 FIX: Get the teacher field values correctly
         const className = document.getElementById('teacherClassName').value;
         const period = document.getElementById('teacherPeriod').value;
-        
-        console.log('Teacher fields:', { className, period });
         
         if (!className || !period) {
             showCustomAlert("Teacher must provide class name and period");
             return;
         }
         
-        // 🔥 FIX: Add className and period to the request body
         body.className = className;
         body.period = period;
         
     } else if (role === "student") {
         const studentClasses = document.getElementById('studentClasses');
         const selectedOptions = Array.from(studentClasses.selectedOptions);
-        
-        console.log('Selected student classes:', selectedOptions);
         
         if (selectedOptions.length === 0) {
             showCustomAlert("Please select at least one class");
@@ -380,42 +380,46 @@ function hideCustomAlert() {
         }));
     }
 
-    console.log('Final request body:', body);
-
     try {
-        const response = await fetch('/api/auth/signup', {
+        // 1️⃣ Create the user
+        const signupRes = await fetch('/api/auth/signup', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
+        const signupData = await signupRes.json();
 
-        console.log('Response status:', response.status);
-
-        const data = await response.json();
-        console.log('Response data:', data);
-
-        if (response.ok && data.success) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            
-            showCustomAlert("Signup successful! Redirecting to dashboard...");
-            window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
-        } else {
-            showCustomAlert(data.message || "Signup failed. Please try again.");
+        if (!signupRes.ok || !signupData.success) {
+            showCustomAlert(signupData.message || "Signup failed");
+            return;
         }
-    } catch (error) {
-        console.error('Signup error:', error);
-        showCustomAlert("Error signing up. Please check your connection and try again.");
+
+        console.log('User created, now sending verification code');
+
+        // 2️⃣ Send verification code
+        const verifyRes = await fetch('/api/auth/send-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const verifyData = await verifyRes.json();
+
+        if (!verifyRes.ok || !verifyData.success) {
+            showCustomAlert(verifyData.message || "Failed to send verification code");
+            return;
+        }
+
+        showCustomAlert("Signup successful! Check your email for a verification code.");
+
+        // 3️⃣ Redirect to verification page
+        window.location.href = '/verify.html';
+
+    } catch (err) {
+        console.error('Signup error:', err);
+        showCustomAlert("Error signing up. Please try again.");
     }
 }
 
-    // --- Load Teachers for student class selection ---
-// --- Load Teachers for student class selection ---
-// --- Load Teachers for student class selection - FIXED ---
-// --- Load Teachers for student class selection - SIMPLIFIED ---
-// --- Load Teachers for student class selection - WITH PERIOD ---
 // --- Debug version of loadTeachers() ---
 async function loadTeachers() {
     try {

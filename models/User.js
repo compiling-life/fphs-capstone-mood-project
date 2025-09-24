@@ -21,6 +21,9 @@ const UserSchema = new mongoose.Schema({
     default: []
   },
   teacherEmail: { type: String, default: null },
+
+  verificationCode: { type: String },
+  isVerified: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

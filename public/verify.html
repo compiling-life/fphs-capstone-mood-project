@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Verification</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+    <h1 class="text-2xl font-bold mb-4">Verify Your Email</h1>
+    <p class="mb-4">Enter the verification code sent to your email:</p>
+    
+    <input id="verificationCode" type="text" placeholder="Verification code" class="w-full px-4 py-2 border rounded mb-4">
+    <button id="verifyBtn" class="bg-indigo-600 text-white px-4 py-2 rounded w-full hover:bg-indigo-700">Verify</button>
+    
+    <p id="message" class="text-red-500 mt-4"></p>
+</div>
+
+<script>
+    document.getElementById('verifyBtn').addEventListener('click', async () => {
+        const code = document.getElementById('verificationCode').value;
+        const email = localStorage.getItem('pendingEmail'); // stored during signup
+    
+        if (!code || !email) {
+            document.getElementById('message').innerText = "Please enter the verification code.";
+            return;
+        }
+    
+        try {
+            const res = await fetch('/api/auth/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code })
+            });
+    
+            const data = await res.json();
+    
+            if (data.success) {
+                // ✅ Store token and user info
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+    
+                showCustomAlert("Verification successful! Redirecting...");
+    
+                // Redirect based on role
+                if (data.user.role === "teacher") {
+                    window.location.href = 'teacher-dashboard.html';
+                } else {
+                    window.location.href = 'student-dashboard.html';
+                }
+            } else {
+                document.getElementById('message').innerText = data.message || "Invalid verification code.";
+            }
+        } catch (err) {
+            console.error('Verification error:', err);
+            document.getElementById('message').innerText = "Error verifying. Try again.";
+        }
+    });
+    
+    // Optional: simple alert function
+    function showCustomAlert(msg) {
+        alert(msg);
+    }
+    </script>
+    
+
+</body>
+</html>
