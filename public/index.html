@@ -343,8 +343,6 @@ function hideCustomAlert() {
         return;
     }
 
-    localStorage.setItem('pendingEmail', email);
-
     let body = { email, password, role };
     
     if (role === "teacher") {
@@ -382,36 +380,37 @@ function hideCustomAlert() {
 
     try {
         // 1️⃣ Create the user
-        const signupRes = await fetch('/api/auth/signup', {
+        const response = await fetch('/api/auth/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        const signupData = await signupRes.json();
+        const data = await response.json();
 
-        if (!signupRes.ok || !signupData.success) {
-            showCustomAlert(signupData.message || "Signup failed");
+        if (!response.ok || !data.success) {
+            showCustomAlert(data.message || "Signup failed");
             return;
         }
 
-        console.log('User created, now sending verification code');
+        console.log('User created successfully:', data);
 
-        // 2️⃣ Send verification code
-        const verifyRes = await fetch('/api/auth/send-verification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        const verifyData = await verifyRes.json();
+        // 2️⃣ Store email for verification page
+        localStorage.setItem('pendingEmail', email);
 
-        if (!verifyRes.ok || !verifyData.success) {
-            showCustomAlert(verifyData.message || "Failed to send verification code");
-            return;
+        // 3️⃣ Send verification code
+        try {
+            await fetch('/api/auth/send-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            console.log('Verification code sent');
+        } catch (err) {
+            console.error('Error sending verification code:', err);
         }
 
+        // 4️⃣ Redirect to verification page
         showCustomAlert("Signup successful! Check your email for a verification code.");
-
-        // 3️⃣ Redirect to verification page
         window.location.href = '/verify.html';
 
     } catch (err) {
