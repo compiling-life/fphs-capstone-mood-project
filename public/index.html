@@ -21,6 +21,44 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
+<style>
+    .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none; /* hidden by default */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0px 5px 20px rgba(0,0,0,0.3);
+}
+
+.modal-box button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  border: none;
+  background-color: #007BFF;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-box button:hover {
+  background-color: #0056b3;
+}
+
+</style>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
 
 <!-- Navigation -->
@@ -173,7 +211,25 @@
     </div>
 </div>
 
+<!-- Modal structure -->
+<div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+      <p id="modalMessage"></p>
+      <button onclick="closeModal()">OK</button>
+    </div>
+  </div>
+  
+
 <script>
+    function showCustomAlert(message) {
+    document.getElementById('modalMessage').innerText = message;
+    document.getElementById('customModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('customModal').style.display = 'none';
+}
+
     // --- Modal Logic ---
     function openModal(id) {
         const modal = document.getElementById(id);
@@ -226,7 +282,7 @@
         const password = document.getElementById('loginPassword').value;
 
         if (!email || !password) {
-            alert("Please fill in all fields");
+            showCustomAlert("Please fill in all fields");
             return;
         }
 
@@ -249,11 +305,11 @@
                 // Redirect to appropriate dashboard
                 window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
             } else {
-                alert(data.message || "Login failed. Please check your credentials.");
+                showCustomAlert(data.message || "Login failed. Please check your credentials.");
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert("Error logging in. Please try again.");
+            showCustomAlert("Error logging in. Please try again.");
         }
     }
 
@@ -267,7 +323,7 @@
     console.log('Basic info:', { email, password, role });
 
     if (!email || !password || !role) {
-        alert("Please fill in all required fields");
+        showCustomAlert("Please fill in all required fields");
         return;
     }
 
@@ -281,7 +337,7 @@
         console.log('Teacher fields:', { className, period });
         
         if (!className || !period) {
-            alert("Teacher must provide class name and period");
+            showCustomAlert("Teacher must provide class name and period");
             return;
         }
         
@@ -296,12 +352,12 @@
         console.log('Selected student classes:', selectedOptions);
         
         if (selectedOptions.length === 0) {
-            alert("Please select at least one class");
+            showCustomAlert("Please select at least one class");
             return;
         }
         
         if (selectedOptions.length > 7) {
-            alert("Cannot select more than 7 classes");
+            showCustomAlert("Cannot select more than 7 classes");
             return;
         }
 
@@ -332,14 +388,14 @@
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             
-            alert("Signup successful! Redirecting to dashboard...");
+            showCustomAlert("Signup successful! Redirecting to dashboard...");
             window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
         } else {
-            alert(data.message || "Signup failed. Please try again.");
+            showCustomAlert(data.message || "Signup failed. Please try again.");
         }
     } catch (error) {
         console.error('Signup error:', error);
-        alert("Error signing up. Please check your connection and try again.");
+        showCustomAlert("Error signing up. Please check your connection and try again.");
     }
 }
 
