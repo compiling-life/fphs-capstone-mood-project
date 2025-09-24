@@ -86,16 +86,33 @@ router.post('/signup', async (req, res) => {
         await user.save();
         console.log('User saved successfully');
 
-        // ⚠️ TEMPORARILY DISABLE EMAIL SENDING - JUST RETURN SUCCESS
-        console.log('Email sending temporarily disabled for testing');
-        
-        console.log('Sending success response');
-        res.status(201).json({ 
-            success: true, 
-            message: 'User created successfully. Verification code: ' + user.verificationCode,
-            email,
-            verificationCode: user.verificationCode // Include code for testing
-        });
+        // Send verification email
+console.log('Attempting to send email...');
+try {
+    await transporter.sendMail({
+        from: `"EduMood" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your EduMood Verification Code',
+        text: `Your verification code is: ${user.verificationCode}`
+    });
+    console.log('Email sent successfully');
+    
+    res.status(201).json({ 
+        success: true, 
+        message: 'User created successfully. Verification code sent to email.',
+        email
+    });
+
+} catch (emailError) {
+    console.error('Email sending failed:', emailError);
+    // Still return success but note email failed
+    res.status(201).json({ 
+        success: true, 
+        message: 'User created but email failed. Code: ' + user.verificationCode,
+        email,
+        verificationCode: user.verificationCode
+    });
+}
 
     } catch (err) {
         console.error('SIGNUP ERROR:', err);
