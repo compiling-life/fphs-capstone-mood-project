@@ -347,6 +347,7 @@ function hideCustomAlert() {
     document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
     document.getElementById('signupBtn').addEventListener('click', switchToSignup);
     document.getElementById('getStartedBtn').addEventListener('click', switchToSignup);
+    document.getElementById('supportBtn').addEventListener('click', () => openModal('supportModal')); // ← ADD THIS LINE
 
     // Role change handler
     document.getElementById('signupRole').addEventListener('change', function() {
