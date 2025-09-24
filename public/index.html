@@ -83,10 +83,6 @@
             <div class="hidden md:flex items-center space-x-8">
                 <button id="loginBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
                 <button id="signupBtn" class="border border-indigo-600 text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors">Sign Up</button>
-                <!--TESTING-->
-                <button onclick="testRedirect()" class="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-50">
-                    Test Redirect
-                </button>
             </div>
         </div>
     </div>
@@ -227,11 +223,6 @@
   
 
 <script>
-// TESTING
-function testRedirect() {
-    console.log('Testing redirect to verify.html');
-    window.location.href = 'verify.html';
-}
 
 function showCustomAlert(message) {
     const modal = document.getElementById('customModal');
@@ -401,47 +392,69 @@ function hideCustomAlert() {
     console.log('Final request body:', body);
 
     try {
-        console.log('Sending request to /api/auth/signup...');
-        
-        // 1️⃣ Create the user (or resend verification if exists)
-        const signupRes = await fetch('/api/auth/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        
-        console.log('Response status:', signupRes.status);
-        console.log('Response headers:', signupRes.headers);
-        
-        const signupData = await signupRes.json();
-        console.log('Response data:', signupData);
-
-        if (!signupRes.ok || !signupData.success) {
-            console.log('Signup failed:', signupData.message);
-            showCustomAlert(signupData.message || "Signup failed");
-            return;
+    console.log('Sending request to /api/auth/signup...');
+    
+    // Add timeout to fetch request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    // 1️⃣ Create the user (or resend verification if exists)
+    const signupRes = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    console.log('Response status:', signupRes.status);
+    
+    if (!signupRes.ok) {
+        console.log('Response not OK, status:', signupRes.status);
+        let errorText;
+        try {
+            errorText = await signupRes.text();
+            console.log('Response text:', errorText);
+        } catch (e) {
+            errorText = 'Could not read error response';
         }
-
-        console.log('User created / verification sent:', signupData);
-
-        // 2️⃣ Store pending email for verification page
-        localStorage.setItem('pendingEmail', email);
-        console.log('Stored pendingEmail in localStorage');
-
-        // 3️⃣ Redirect to verification page
-        console.log('Attempting redirect to verify.html');
-        showCustomAlert("Signup successful! Check your email for a verification code.");
-        closeModal('signupModal');
-        
-        setTimeout(() => {
-            console.log('Redirecting now...');
-            window.location.href = 'verify.html';
-        }, 1000);
-
-    } catch (err) {
-        console.error('Signup error:', err);
-        showCustomAlert("Error signing up. Please try again.");
+        throw new Error(`HTTP ${signupRes.status}: ${errorText}`);
     }
+    
+    const signupData = await signupRes.json();
+    console.log('Response data:', signupData);
+
+    if (!signupData.success) {
+        console.log('Signup failed in response:', signupData.message);
+        showCustomAlert(signupData.message || "Signup failed");
+        return;
+    }
+
+    console.log('User created / verification sent:', signupData);
+
+    // 2️⃣ Store pending email for verification page
+    localStorage.setItem('pendingEmail', email);
+    console.log('Stored pendingEmail in localStorage');
+
+    // 3️⃣ Redirect to verification page
+    console.log('Attempting redirect to verify.html');
+    showCustomAlert("Signup successful! Check your email for a verification code.");
+    closeModal('signupModal');
+    
+    setTimeout(() => {
+        console.log('Redirecting now...');
+        window.location.href = 'verify.html';
+    }, 1000);
+
+} catch (err) {
+    console.error('Signup error:', err);
+    if (err.name === 'AbortError') {
+        showCustomAlert("Request timed out. Please check your server connection.");
+    } else {
+        showCustomAlert("Error signing up: " + err.message);
+    }
+}
 }
 
 
