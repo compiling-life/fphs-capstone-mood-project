@@ -45,11 +45,11 @@
 
 .modal-box {
   background: white;
-  padding: 20px 30px;
-  border-radius: 8px;
-  max-width: 400px;
+  padding: 25px 30px;
+  border-radius: 12px;
+  max-width: 450px;
   text-align: center;
-  box-shadow: 0px 5px 20px rgba(0,0,0,0.3);
+  box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
   transform: scale(0.8);
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
@@ -224,18 +224,49 @@
 
 <script>
 
+function showCustomAlertWithButton(message, buttonText, buttonCallback) {
+    const modal = document.getElementById('customModal');
+    const modalBox = modal.querySelector('.modal-box');
+    
+    // Create the message with button
+    modalBox.innerHTML = `
+        <p class="mb-4">${message}</p>
+        <button id="alertButton" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+            ${buttonText}
+        </button>
+    `;
+    
+    // Show modal
+    modal.classList.add('show');
+    
+    // Add event listener to the button
+    document.getElementById('alertButton').addEventListener('click', function() {
+        modal.classList.remove('show');
+        if (buttonCallback) buttonCallback();
+    });
+    
+    // Also allow closing by clicking outside (optional)
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
+}
+
 function showCustomAlert(message) {
     const modal = document.getElementById('customModal');
     const modalBox = modal.querySelector('.modal-box');
-    document.getElementById('modalMessage').innerText = message;
-
+    
+    // Reset to simple message structure
+    modalBox.innerHTML = `<p id="modalMessage">${message}</p>`;
+    
     // Show modal with fade
     modal.classList.add('show');
 
-    // Auto hide after 2 seconds
+    // Auto hide after 3 seconds for regular alerts
     setTimeout(() => {
         modal.classList.remove('show');
-    }, 2000);
+    }, 3000);
 }
 
 function hideCustomAlert() {
@@ -392,70 +423,71 @@ function hideCustomAlert() {
     console.log('Final request body:', body);
 
     try {
-    console.log('Sending request to /api/auth/signup...');
-    
-    // Add timeout to fetch request
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-    
-    // 1️⃣ Create the user (or resend verification if exists)
-    const signupRes = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    console.log('Response status:', signupRes.status);
-    
-    if (!signupRes.ok) {
-        console.log('Response not OK, status:', signupRes.status);
-        let errorText;
-        try {
-            errorText = await signupRes.text();
-            console.log('Response text:', errorText);
-        } catch (e) {
-            errorText = 'Could not read error response';
+        console.log('Sending request to /api/auth/signup...');
+        
+        // Add timeout to fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        // 1️⃣ Create the user (or resend verification if exists)
+        const signupRes = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log('Response status:', signupRes.status);
+        
+        if (!signupRes.ok) {
+            console.log('Response not OK, status:', signupRes.status);
+            let errorText;
+            try {
+                errorText = await signupRes.text();
+                console.log('Response text:', errorText);
+            } catch (e) {
+                errorText = 'Could not read error response';
+            }
+            throw new Error(`HTTP ${signupRes.status}: ${errorText}`);
         }
-        throw new Error(`HTTP ${signupRes.status}: ${errorText}`);
-    }
-    
-    const signupData = await signupRes.json();
-    console.log('Response data:', signupData);
+        
+        const signupData = await signupRes.json();
+        console.log('Response data:', signupData);
 
-    if (!signupData.success) {
-        console.log('Signup failed in response:', signupData.message);
-        showCustomAlert(signupData.message || "Signup failed");
-        return;
-    }
+        if (!signupData.success) {
+            console.log('Signup failed in response:', signupData.message);
+            showCustomAlert(signupData.message || "Signup failed");
+            return;
+        }
 
-    console.log('User created / verification sent:', signupData);
+        console.log('User created / verification sent:', signupData);
 
-    // 2️⃣ Store pending email for verification page
-    localStorage.setItem('pendingEmail', email);
-    console.log('Stored pendingEmail in localStorage');
+        // 2️⃣ Store pending email for verification page
+        localStorage.setItem('pendingEmail', email);
+        console.log('Stored pendingEmail in localStorage');
 
-    // 3️⃣ Redirect to verification page
-    console.log('Attempting redirect to verify.html');
-    showCustomAlert("Signup successful! Check your email for a verification code.");
-    closeModal('signupModal');
-    
-    setTimeout(() => {
-        console.log('Redirecting now...');
-        window.location.href = 'verify.html';
-    }, 1000);
+        // 3️⃣ Show success alert with verification button
+        showCustomAlertWithButton(
+            "Signup successful! Check your email for a verification code.", 
+            "Verify Now!",
+            () => {
+                closeModal('signupModal');
+                window.location.href = 'verify.html';
+            }
+        );
 
-} catch (err) {
-    console.error('Signup error:', err);
-    if (err.name === 'AbortError') {
-        showCustomAlert("Request timed out. Please check your server connection.");
-    } else {
-        showCustomAlert("Error signing up: " + err.message);
+    } catch (err) {
+        console.error('Signup error:', err);
+        if (err.name === 'AbortError') {
+            showCustomAlert("Request timed out. Please check your server connection.");
+        } else {
+            showCustomAlert("Error signing up: " + err.message);
+        }
     }
 }
-}
+
 
 
 // --- Debug version of loadTeachers() ---
