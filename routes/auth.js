@@ -2,25 +2,18 @@ import express from 'express';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 const router = express.Router();
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+// Initialize SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Generate random 6-digit code
 function generateCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// --- Signup route ---
 // --- Signup route ---
 router.post('/signup', async (req, res) => {
     console.log('=== SIGNUP API ENDPOINT HIT ===');
@@ -86,44 +79,40 @@ router.post('/signup', async (req, res) => {
         await user.save();
         console.log('User saved successfully');
 
-        // Send verification email
-// Send verification email with timeout
-console.log('Attempting to send email...');
-try {
-    // Add a timeout to email sending
-    const emailPromise = transporter.sendMail({
-        from: `"EduMood" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Your EduMood Verification Code',
-        text: `Your verification code is: ${user.verificationCode}`
-    });
+        // Send verification email with SendGrid
+        console.log('Attempting to send email via SendGrid...');
+        try {
+            const msg = {
+                to: email,
+                from: {
+                    email: 'noreply@edumood.com', // This will need to be verified in SendGrid
+                    name: 'EduMood'
+                },
+                subject: 'Your EduMood Verification Code',
+                text: `Your verification code is: ${user.verificationCode}`,
+                html: `<p>Your EduMood verification code is: <strong>${user.verificationCode}</strong></p>`
+            };
 
-    // Set a 10-second timeout for email sending
-    const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Email timeout after 10 seconds')), 10000);
-    });
+            await sgMail.send(msg);
+            console.log('Email sent successfully via SendGrid');
+            
+            res.status(201).json({ 
+                success: true, 
+                message: 'User created successfully. Verification code sent to email.',
+                email
+            });
 
-    // Race between email and timeout
-    await Promise.race([emailPromise, timeoutPromise]);
-    
-    console.log('Email sent successfully');
-    
-    res.status(201).json({ 
-        success: true, 
-        message: 'User created successfully. Verification code sent to email.',
-        email
-    });
-
-} catch (emailError) {
-    console.error('Email sending failed:', emailError);
-    // Still return success immediately but note email failed
-    res.status(201).json({ 
-        success: true, 
-        message: 'User created but email failed. Please contact support.',
-        email,
-        verificationCode: user.verificationCode // Include code for manual verification
-    });
-}
+        } catch (emailError) {
+            console.error('SendGrid email failed:', emailError.response?.body || emailError.message);
+            
+            // Still return success but note email failed
+            res.status(201).json({ 
+                success: true, 
+                message: 'User created but email failed. Your verification code: ' + user.verificationCode,
+                email,
+                verificationCode: user.verificationCode
+            });
+        }
 
     } catch (err) {
         console.error('SIGNUP ERROR:', err);
@@ -211,14 +200,26 @@ router.post('/send-verification', async (req, res) => {
         user.verificationCode = generateCode();
         await user.save();
 
-        await transporter.sendMail({
-            from: `"EduMood" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: 'Your EduMood Verification Code',
-            text: `Your verification code is: ${user.verificationCode}`
-        });
-
-        res.json({ success: true, message: 'Verification code sent to email' });
+        try {
+            const msg = {
+                to: email,
+                from: {
+                    email: 'noreply@edumood.com',
+                    name: 'EduMood'
+                },
+                subject: 'Your EduMood Verification Code',
+                text: `Your verification code is: ${user.verificationCode}`
+            };
+            await sgMail.send(msg);
+            res.json({ success: true, message: 'Verification code sent to email' });
+        } catch (emailError) {
+            console.error('Resend email failed:', emailError);
+            res.json({ 
+                success: true, 
+                message: 'Verification code: ' + user.verificationCode,
+                verificationCode: user.verificationCode
+            });
+        }
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
