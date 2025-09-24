@@ -399,6 +399,7 @@ function hideCustomAlert() {
 
         // 3️⃣ Redirect to verification page
         showCustomAlert("Signup successful! Check your email for a verification code.");
+        closeModal('signupModal');
         setTimeout(() => {
             window.location.href = '/verify.html';
         }, 1000); // slight delay so user sees alert
