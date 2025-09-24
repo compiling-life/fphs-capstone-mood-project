@@ -87,14 +87,25 @@ router.post('/signup', async (req, res) => {
         console.log('User saved successfully');
 
         // Send verification email
+// Send verification email with timeout
 console.log('Attempting to send email...');
 try {
-    await transporter.sendMail({
+    // Add a timeout to email sending
+    const emailPromise = transporter.sendMail({
         from: `"EduMood" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Your EduMood Verification Code',
         text: `Your verification code is: ${user.verificationCode}`
     });
+
+    // Set a 10-second timeout for email sending
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Email timeout after 10 seconds')), 10000);
+    });
+
+    // Race between email and timeout
+    await Promise.race([emailPromise, timeoutPromise]);
+    
     console.log('Email sent successfully');
     
     res.status(201).json({ 
@@ -105,12 +116,12 @@ try {
 
 } catch (emailError) {
     console.error('Email sending failed:', emailError);
-    // Still return success but note email failed
+    // Still return success immediately but note email failed
     res.status(201).json({ 
         success: true, 
-        message: 'User created but email failed. Code: ' + user.verificationCode,
+        message: 'User created but email failed. Please contact support.',
         email,
-        verificationCode: user.verificationCode
+        verificationCode: user.verificationCode // Include code for manual verification
     });
 }
 
