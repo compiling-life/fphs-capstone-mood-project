@@ -6,12 +6,9 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['student', 'teacher'], required: true },
   
-  // 🔥 UPDATE: Change from single class to array of classes for teachers
-  classes: [{
-    className: { type: String, required: true },
-    period: { type: String, required: true },
-    classCode: { type: String, unique: true, sparse: true } // Optional: unique class code
-  }],
+  // 🔥 ADD THESE FIELDS FOR TEACHERS
+  className: { type: String }, // Teacher's class name
+  period: { type: String },    // Teacher's class period
   
   selectedClasses: {
     type: [

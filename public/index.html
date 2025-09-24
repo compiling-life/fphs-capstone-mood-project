@@ -138,36 +138,13 @@
                 </select>
             </div>
 
-            <!-- Teacher fields - MULTI-CLASS VERSION -->
-<div id="teacherFields" class="hidden mb-4">
-    <label class="block text-gray-700 mb-4 font-semibold">Your Classes (Add 1 to 7 classes)</label>
-    
-    <div id="teacherClassesContainer">
-        <!-- Class 1 (always visible) -->
-        <div class="class-entry mb-4 p-4 border rounded-lg bg-gray-50">
-            <div class="flex justify-between items-center mb-2">
-                <span class="font-medium text-gray-700">Class 1</span>
-                <span class="text-sm text-gray-500 required">Required</span>
+            <!-- Teacher fields -->
+            <div id="teacherFields" class="hidden mb-4">
+                <label class="block text-gray-700 mb-2">Class Name</label>
+                <input type="text" id="teacherClassName" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 mt-4 mb-2">Period</label>
+                <input type="text" id="teacherPeriod" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-gray-600 text-sm mb-1">Class Name</label>
-                    <input type="text" class="teacher-class-name w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. Mathematics" required>
-                </div>
-                <div>
-                    <label class="block text-gray-600 text-sm mb-1">Period</label>
-                    <input type="text" class="teacher-class-period w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. 1st Period" required>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Add Class Button -->
-    <button type="button" id="addClassBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium">
-        <i data-feather="plus" class="w-4 h-4 inline mr-1"></i> Add Another Class
-    </button>
-    <p class="text-sm text-gray-500 mt-2">You can add up to 7 classes total</p>
-</div>
 
             <!-- Student classes -->
             <!-- Student classes - FIXED MULTIPLE SELECTION -->
@@ -296,34 +273,44 @@
 
     let body = { email, password, role };
 
-    // In the signup function, replace the teacher section with:
-if (role === "teacher") {
-    const classEntries = document.querySelectorAll('.class-entry');
-    const classes = [];
-    
-    classEntries.forEach((entry, index) => {
-        const className = entry.querySelector('.teacher-class-name').value;
-        const period = entry.querySelector('.teacher-class-period').value;
+    if (role === "teacher") {
+        // 🔥 FIX: Get the teacher field values correctly
+        const className = document.getElementById('teacherClassName').value;
+        const period = document.getElementById('teacherPeriod').value;
         
-        // First class is required
-        if (index === 0 && (!className || !period)) {
-            alert("First class name and period are required");
+        console.log('Teacher fields:', { className, period });
+        
+        if (!className || !period) {
+            alert("Teacher must provide class name and period");
             return;
         }
         
-        // Only add classes that have both fields filled
-        if (className && period) {
-            classes.push({ className, period });
+        // 🔥 FIX: Add className and period to the request body
+        body.className = className;
+        body.period = period;
+        
+    } else if (role === "student") {
+        const studentClasses = document.getElementById('studentClasses');
+        const selectedOptions = Array.from(studentClasses.selectedOptions);
+        
+        console.log('Selected student classes:', selectedOptions);
+        
+        if (selectedOptions.length === 0) {
+            alert("Please select at least one class");
+            return;
         }
-    });
-    
-    if (classes.length === 0) {
-        alert("Please add at least one class");
-        return;
+        
+        if (selectedOptions.length > 7) {
+            alert("Cannot select more than 7 classes");
+            return;
+        }
+
+        body.selectedClasses = selectedOptions.map(opt => ({
+            className: opt.value,
+            period: opt.dataset.period,
+            teacherEmail: opt.dataset.teacheremail
+        }));
     }
-    
-    body.classes = classes;
-}
 
     console.log('Final request body:', body);
 
@@ -481,86 +468,6 @@ function setupMultipleSelection() {
         if (window.AOS) AOS.init();
         if (window.feather) feather.replace();
     });
-
-    // --- Teacher Multi-Class Functionality ---
-let classCount = 1;
-const maxClasses = 7;
-
-function setupTeacherClasses() {
-    const addClassBtn = document.getElementById('addClassBtn');
-    const classesContainer = document.getElementById('teacherClassesContainer');
-    
-    addClassBtn.addEventListener('click', function() {
-        if (classCount >= maxClasses) {
-            alert(`Maximum ${maxClasses} classes allowed`);
-            return;
-        }
-        
-        classCount++;
-        const newClassHtml = `
-            <div class="class-entry mb-4 p-4 border rounded-lg bg-gray-50" data-class-index="${classCount}">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-medium text-gray-700">Class ${classCount}</span>
-                    <button type="button" class="remove-class-btn text-red-500 hover:text-red-700 text-sm font-medium">
-                        <i data-feather="x" class="w-4 h-4 inline mr-1"></i> Remove
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-600 text-sm mb-1">Class Name</label>
-                        <input type="text" class="teacher-class-name w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. Science">
-                    </div>
-                    <div>
-                        <label class="block text-gray-600 text-sm mb-1">Period</label>
-                        <input type="text" class="teacher-class-period w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. 2nd Period">
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        classesContainer.insertAdjacentHTML('beforeend', newClassHtml);
-        feather.replace();
-        
-        // Add remove functionality to the new button
-        const newRemoveBtn = classesContainer.querySelector(`[data-class-index="${classCount}"] .remove-class-btn`);
-        newRemoveBtn.addEventListener('click', function() {
-            this.closest('.class-entry').remove();
-            classCount--;
-            updateClassNumbers();
-        });
-    });
-}
-
-function updateClassNumbers() {
-    const classEntries = document.querySelectorAll('.class-entry');
-    classEntries.forEach((entry, index) => {
-        const classNumber = index + 1;
-        entry.setAttribute('data-class-index', classNumber);
-        entry.querySelector('.font-medium').textContent = `Class ${classNumber}`;
-        
-        // Update required label for first class only
-        const requiredSpan = entry.querySelector('.required');
-        if (requiredSpan) {
-            requiredSpan.textContent = classNumber === 1 ? 'Required' : 'Optional';
-        }
-    });
-    classCount = classEntries.length;
-}
-
-// Call this when teacher role is selected
-document.getElementById('signupRole').addEventListener('change', function() {
-    if (this.value === "teacher") {
-        // Reset classes when switching to teacher
-        classCount = 1;
-        const classesContainer = document.getElementById('teacherClassesContainer');
-        // Keep only the first class
-        const firstClass = classesContainer.querySelector('.class-entry');
-        classesContainer.innerHTML = '';
-        classesContainer.appendChild(firstClass);
-        updateClassNumbers();
-        feather.replace();
-    }
-});
 </script>
 </body>
 </html>
