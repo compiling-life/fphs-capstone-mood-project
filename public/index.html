@@ -139,42 +139,12 @@
             </div>
 
             <!-- Teacher fields -->
-            <!-- Teacher fields - UPDATED FOR MULTIPLE CLASSES -->
-<div id="teacherFields" class="hidden mb-4">
-    <label class="block text-gray-700 mb-2">Classes (up to 7)</label>
-    
-    <div id="teacherClassesContainer">
-        <!-- Class 1 (required) -->
-        <div class="teacher-class mb-3 p-3 border rounded-lg bg-gray-50">
-            <div class="flex justify-between items-center mb-2">
-                <span class="font-medium">Class 1</span>
-                <button type="button" onclick="removeTeacherClass(this)" class="text-red-500 hover:text-red-700 hidden">
-                    <i data-feather="trash-2" class="w-4 h-4"></i>
-                </button>
+            <div id="teacherFields" class="hidden mb-4">
+                <label class="block text-gray-700 mb-2">Class Name</label>
+                <input type="text" id="teacherClassName" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 mt-4 mb-2">Period</label>
+                <input type="text" id="teacherPeriod" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Class Name</label>
-                    <input type="text" name="teacherClassName" placeholder="e.g., Biology" 
-                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Period</label>
-                    <input type="text" name="teacherPeriod" placeholder="e.g., 1st Period" 
-                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Add Class Button (only show if less than 7 classes) -->
-    <button type="button" id="addTeacherClassBtn" onclick="addTeacherClass()" 
-            class="mt-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-        + Add Another Class
-    </button>
-    
-    <p class="text-xs text-gray-500 mt-1">Add up to 7 classes. First class is required.</p>
-</div>
 
             <!-- Student classes -->
             <!-- Student classes - FIXED MULTIPLE SELECTION -->
@@ -304,39 +274,22 @@
     let body = { email, password, role };
 
     if (role === "teacher") {
-        // Get all teacher classes
-        const classInputs = document.querySelectorAll('input[name="teacherClassName"]');
-        const periodInputs = document.querySelectorAll('input[name="teacherPeriod"]');
+        // 🔥 FIX: Get the teacher field values correctly
+        const className = document.getElementById('teacherClassName').value;
+        const period = document.getElementById('teacherPeriod').value;
         
-        const teacherClasses = [];
+        console.log('Teacher fields:', { className, period });
         
-        for (let i = 0; i < classInputs.length; i++) {
-            const className = classInputs[i].value.trim();
-            const period = periodInputs[i].value.trim();
-            
-            if (!className || !period) {
-                alert(`Please fill in both class name and period for Class ${i + 1}`);
-                return;
-            }
-            
-            teacherClasses.push({
-                className: className,
-                period: period,
-                teacherEmail: email
-            });
-        }
-        
-        console.log('Teacher classes:', teacherClasses);
-        
-        if (teacherClasses.length === 0) {
-            alert("Teacher must provide at least one class");
+        if (!className || !period) {
+            alert("Teacher must provide class name and period");
             return;
         }
         
-        body.teacherClasses = teacherClasses;
+        // 🔥 FIX: Add className and period to the request body
+        body.className = className;
+        body.period = period;
         
     } else if (role === "student") {
-        // Existing student code remains the same
         const studentClasses = document.getElementById('studentClasses');
         const selectedOptions = Array.from(studentClasses.selectedOptions);
         
@@ -370,7 +323,20 @@
             body: JSON.stringify(body)
         });
 
-        // ... rest of your existing code
+        console.log('Response status:', response.status);
+
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (response.ok && data.success) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            alert("Signup successful! Redirecting to dashboard...");
+            window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+        } else {
+            alert(data.message || "Signup failed. Please try again.");
+        }
     } catch (error) {
         console.error('Signup error:', error);
         alert("Error signing up. Please check your connection and try again.");
@@ -502,73 +468,6 @@ function setupMultipleSelection() {
         if (window.AOS) AOS.init();
         if (window.feather) feather.replace();
     });
-
-    // Teacher class management
-let teacherClassCount = 1;
-
-function addTeacherClass() {
-    if (teacherClassCount >= 7) {
-        alert('Maximum 7 classes allowed');
-        return;
-    }
-    // NEW CODEEEEE
-    teacherClassCount++;
-    const container = document.getElementById('teacherClassesContainer');
-    
-    const newClassDiv = document.createElement('div');
-    newClassDiv.className = 'teacher-class mb-3 p-3 border rounded-lg bg-gray-50';
-    newClassDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-2">
-            <span class="font-medium">Class ${teacherClassCount}</span>
-            <button type="button" onclick="removeTeacherClass(this)" class="text-red-500 hover:text-red-700">
-                <i data-feather="trash-2" class="w-4 h-4"></i>
-            </button>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Class Name</label>
-                <input type="text" name="teacherClassName" placeholder="e.g., Mathematics" 
-                       class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Period</label>
-                <input type="text" name="teacherPeriod" placeholder="e.g., ${teacherClassCount}rd Period" 
-                       class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
-            </div>
-        </div>
-    `;
-    
-    container.appendChild(newClassDiv);
-    feather.replace(); // Refresh icons
-    
-    // Hide add button if at max
-    if (teacherClassCount >= 7) {
-        document.getElementById('addTeacherClassBtn').classList.add('hidden');
-    }
-}
-
-function removeTeacherClass(button) {
-    if (teacherClassCount <= 1) return;
-    
-    const classDiv = button.closest('.teacher-class');
-    classDiv.remove();
-    teacherClassCount--;
-    
-    // Renumber remaining classes
-    const classes = document.querySelectorAll('.teacher-class');
-    classes.forEach((div, index) => {
-        div.querySelector('.font-medium').textContent = `Class ${index + 1}`;
-    });
-    
-    // Show add button if not at max
-    document.getElementById('addTeacherClassBtn').classList.remove('hidden');
-    feather.replace();
-}
-
-// Reset class count when role changes
-document.getElementById('signupRole').addEventListener('change', function() {
-    teacherClassCount = 1;
-});
 </script>
 </body>
 </html>

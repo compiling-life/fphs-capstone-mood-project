@@ -28,25 +28,17 @@ router.post('/signup', async (req, res) => {
 // In the signup route, fix the teacher data saving:
 // Fix the teacher signup section - look for this part:
 // In the signup route, ensure this part exists:
-// In your signup route, replace the teacher section with:
 if (role === 'teacher') {
-    if (!teacherClasses || !Array.isArray(teacherClasses) || teacherClasses.length === 0) {
-        return res.status(400).json({ success: false, message: 'Teacher must provide at least one class' });
+    if (!className || !period) {
+        return res.status(400).json({ success: false, message: 'Teacher must provide class name and period' });
     }
     
-    if (teacherClasses.length > 7) {
-        return res.status(400).json({ success: false, message: 'Maximum 7 classes allowed' });
-    }
-    
-    // Store first class in legacy fields for backward compatibility
-    user.className = teacherClasses[0].className;
-    user.period = teacherClasses[0].period;
-    
-    // Store all classes in the selectedClasses array (repurposing it for teachers)
-    user.selectedClasses = teacherClasses;
+    // 🔥 CRITICAL: These lines must be present
+    user.className = className;
+    user.period = period;
     user.teacherEmail = email;
     
-    console.log('Saving teacher with classes:', teacherClasses);
+    console.log('Saving teacher:', { className, period, email }); // Debug
 }
 
         if (role === 'student') {
