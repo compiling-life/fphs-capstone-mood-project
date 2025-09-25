@@ -58,6 +58,7 @@ router.post('/signup', async (req, res) => {
             user.teacherEmail = email;
             console.log('Teacher classes set:', classes);
         }
+        
 
         if (role === 'student') {
             console.log('Processing student registration');

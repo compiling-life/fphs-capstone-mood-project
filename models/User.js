@@ -5,11 +5,19 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['student', 'teacher'], required: true },
-  
-  // 🔥 ADD THESE FIELDS FOR TEACHERS
-  className: { type: String }, // Teacher's class name
-  period: { type: String },    // Teacher's class period
-  
+
+  // Teacher classes
+  classes: {
+    type: [
+      { 
+        className: { type: String, required: true },
+        period: { type: String }
+      }
+    ],
+    default: []
+  },
+
+  // Student selected classes
   selectedClasses: {
     type: [
       { 
@@ -20,6 +28,7 @@ const UserSchema = new mongoose.Schema({
     ],
     default: []
   },
+
   teacherEmail: { type: String, default: null },
 
   verificationCode: { type: String },
