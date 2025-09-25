@@ -49,14 +49,14 @@ router.post('/signup', async (req, res) => {
 
         if (role === 'teacher') {
             console.log('Processing teacher registration');
-            if (!className || !period) {
-                console.log('Missing teacher fields');
-                return res.status(400).json({ success: false, message: 'Teacher must provide class name and period' });
+            if (!classes || !Array.isArray(classes) || classes.length === 0) {
+                console.log('No classes provided for teacher');
+                return res.status(400).json({ success: false, message: 'Teacher must provide at least one class' });
             }
-            user.className = className;
-            user.period = period;
+            
+            user.classes = classes; // Store array of classes
             user.teacherEmail = email;
-            console.log('Teacher data set:', { className: user.className, period: user.period });
+            console.log('Teacher classes set:', classes);
         }
 
         if (role === 'student') {
