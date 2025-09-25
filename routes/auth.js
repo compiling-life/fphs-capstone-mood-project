@@ -19,95 +19,82 @@ router.post('/signup', async (req, res) => {
     console.log('=== SIGNUP API ENDPOINT HIT ===');
     console.log('Request body:', req.body);
 
-    const { email, password, role, selectedClasses, className, period, classes } = req.body;
+    const { email, password, role, selectedClasses, classes } = req.body;
 
     try {
-        console.log('Extracted values:', { email, role, className, period, classes, selectedClasses });
+        console.log('Extracted values:', { email, role, classes, selectedClasses });
         
         if (!email || !password || !role) {
-            console.log('Missing required fields');
             return res.status(400).json({ success: false, message: 'Email, password, and role are required' });
         }
 
-        console.log('Searching for user in database...');
         let user = await User.findOne({ email });
-        console.log('User found:', user);
 
         if (user && user.isVerified) {
-            console.log('User already exists and is verified');
             return res.status(400).json({ success: false, message: 'User already exists' });
         }
 
         if (!user) {
-            console.log('Creating new user');
             user = new User({ email, password, role });
         } else {
-            console.log('Updating existing unverified user');
             user.password = password;
             user.role = role;
         }
 
         if (role === 'teacher') {
-            console.log('Processing teacher registration');
             if (!classes || !Array.isArray(classes) || classes.length === 0) {
-                console.log('No classes provided for teacher');
                 return res.status(400).json({ success: false, message: 'Teacher must provide at least one class' });
             }
-            user.classes = classes; // Store array of classes
+            user.classes = classes;
             user.teacherEmail = email;
-            console.log('Teacher classes set:', classes);
         }
 
         if (role === 'student') {
-            console.log('Processing student registration');
             if (!selectedClasses || !Array.isArray(selectedClasses) || selectedClasses.length === 0) {
-                console.log('No classes selected for student');
                 return res.status(400).json({ success: false, message: 'Student must select at least one class' });
             }
             user.selectedClasses = selectedClasses;
-            console.log('Student classes set:', selectedClasses);
         }
 
-        // Generate verification code
-        console.log('Generating verification code...');
         user.verificationCode = generateCode();
         user.isVerified = false;
-        console.log('Verification code generated:', user.verificationCode);
 
-        console.log('Saving user to database...');
         await user.save();
-        console.log('User saved successfully');
 
-        // Send verification email with SendGrid
-        console.log('Attempting to send email via SendGrid...');
+        // Send verification email
         try {
             const msg = {
                 to: email,
-                from: {
-                    email: 'fphs.edumood@gmail.com', // Verified SendGrid email
-                    name: 'EduMood'
-                },
+                from: { email: 'fphs.edumood@gmail.com', name: 'EduMood' },
                 subject: 'Your EduMood Verification Code',
                 text: `Your verification code is: ${user.verificationCode}`,
                 html: `<p>Your EduMood verification code is: <strong>${user.verificationCode}</strong></p>`
             };
-
             await sgMail.send(msg);
-            console.log('Email sent successfully via SendGrid');
-            
+
             res.status(201).json({ 
                 success: true, 
                 message: 'User created successfully. Verification code sent to email.',
-                email
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    role: user.role,
+                    selectedClasses: user.selectedClasses || [],
+                    classes: user.classes || []
+                }
             });
-
         } catch (emailError) {
-            console.error('SendGrid email failed:', emailError.response?.body || emailError.message);
-            
+            console.error('SendGrid email failed:', emailError);
             res.status(201).json({ 
                 success: true, 
                 message: 'User created but email failed. Your verification code: ' + user.verificationCode,
-                email,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    role: user.role,
+                    selectedClasses: user.selectedClasses || [],
+                    classes: user.classes || []
+                },
                 verificationCode: user.verificationCode
             });
         }
@@ -128,9 +115,7 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
-        if (!user.isVerified) {
-            return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
-        }
+        if (!user.isVerified) return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
 
         const match = await user.comparePassword(password);
         if (!match) return res.status(400).json({ success: false, message: 'Invalid credentials' });
@@ -148,8 +133,8 @@ router.post('/login', async (req, res) => {
                 id: user._id, 
                 email: user.email, 
                 role: user.role,
-                selectedClasses: user.selectedClasses ,
-                classes: user.classes || []   // ✅ Add this line
+                selectedClasses: user.selectedClasses || [],
+                classes: user.classes || []
             }
         });
     } catch (err) {
@@ -179,7 +164,17 @@ router.post('/verify', async (req, res) => {
             { expiresIn: '24h' }
         );
 
-        res.json({ success: true, token, user: { id: user._id, email: user.email, role: user.role, selectedClasses: user.selectedClasses } });
+        res.json({ 
+            success: true, 
+            token, 
+            user: { 
+                id: user._id, 
+                email: user.email, 
+                role: user.role, 
+                selectedClasses: user.selectedClasses || [], 
+                classes: user.classes || [] 
+            } 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -202,10 +197,7 @@ router.post('/send-verification', async (req, res) => {
         try {
             const msg = {
                 to: email,
-                from: {
-                    email: 'noreply@edumood.com',
-                    name: 'EduMood'
-                },
+                from: { email: 'noreply@edumood.com', name: 'EduMood' },
                 subject: 'Your EduMood Verification Code',
                 text: `Your verification code is: ${user.verificationCode}`
             };
