@@ -187,21 +187,12 @@
             </div>
 
             <!-- Teacher fields -->
-            <!-- Teacher fields - UPDATED FOR MULTIPLE CLASSES -->
-<div id="teacherFields" class="hidden mb-4">
-    <div id="teacherClassesContainer">
-        <label class="block text-gray-700 mb-2">Add Your Classes (up to 7)</label>
-        
-        <div id="teacherClassEntries">
-            <!-- Class entries will be added here dynamically -->
-        </div>
-        
-        <button type="button" onclick="addTeacherClass()" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
-            + Add Another Class
-        </button>
-        <p class="text-sm text-gray-500 mt-1" id="teacherClassInfo">You can add up to 7 classes</p>
-    </div>
-</div>
+            <div id="teacherFields" class="hidden mb-4">
+                <label class="block text-gray-700 mb-2">Class Name</label>
+                <input type="text" id="teacherClassName" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-gray-700 mt-4 mb-2">Period</label>
+                <input type="text" id="teacherPeriod" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
 
             <!-- Student classes -->
             <!-- Student classes - FIXED MULTIPLE SELECTION -->
@@ -328,78 +319,6 @@ function hideCustomAlert() {
     document.getElementById('customModal').style.display = 'none';
 }
 
-// Teacher class management
-let teacherClassCount = 0;
-
-function addTeacherClass() {
-    if (teacherClassCount >= 7) {
-        showCustomAlert("Maximum of 7 classes allowed");
-        return;
-    }
-    
-    teacherClassCount++;
-    const classEntries = document.getElementById('teacherClassEntries');
-    
-    const classEntry = document.createElement('div');
-    classEntry.className = 'teacher-class-entry mb-4 p-3 border rounded-lg';
-    classEntry.innerHTML = `
-        <div class="flex justify-between items-center mb-2">
-            <span class="font-medium">Class ${teacherClassCount}</span>
-            <button type="button" onclick="removeTeacherClass(this)" class="text-red-500 hover:text-red-700 text-sm">
-                Remove
-            </button>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">Class Name</label>
-                <input type="text" class="teacher-class-name w-full px-3 py-2 border rounded" placeholder="e.g. Biology" required>
-            </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">Period</label>
-                <input type="text" class="teacher-period w-full px-3 py-2 border rounded" placeholder="e.g. 1st Period" required>
-            </div>
-        </div>
-    `;
-    
-    classEntries.appendChild(classEntry);
-    updateTeacherClassInfo();
-}
-
-function removeTeacherClass(button) {
-    if (teacherClassCount <= 1) {
-        showCustomAlert("You must have at least one class");
-        return;
-    }
-    
-    const classEntry = button.closest('.teacher-class-entry');
-    classEntry.remove();
-    teacherClassCount--;
-    
-    // Re-number the remaining classes
-    const entries = document.querySelectorAll('.teacher-class-entry');
-    entries.forEach((entry, index) => {
-        entry.querySelector('span').textContent = `Class ${index + 1}`;
-    });
-    
-    updateTeacherClassInfo();
-}
-
-function updateTeacherClassInfo() {
-    const infoElement = document.getElementById('teacherClassInfo');
-    infoElement.textContent = `${teacherClassCount} of 7 classes added`;
-    infoElement.className = teacherClassCount >= 7 ? 
-        'text-sm text-red-500 mt-1' : 'text-sm text-gray-500 mt-1';
-}
-
-// Initialize with one class when teacher role is selected
-document.getElementById('signupRole').addEventListener('change', function() {
-    if (this.value === "teacher") {
-        // Reset classes
-        teacherClassCount = 0;
-        document.getElementById('teacherClassEntries').innerHTML = '';
-        addTeacherClass(); // Add first class automatically
-    }
-});
 
     // --- Modal Logic ---
     function openModal(id) {
@@ -511,35 +430,42 @@ document.getElementById('signupRole').addEventListener('change', function() {
     console.log('Base body:', body);
     
     if (role === "teacher") {
-    console.log('Processing teacher registration');
-    
-    // Get all teacher classes
-    const classEntries = document.querySelectorAll('.teacher-class-entry');
-    if (classEntries.length === 0) {
-        console.log('No classes added for teacher');
-        showCustomAlert("Please add at least one class");
-        return;
-    }
-    
-    body.classes = [];
-    classEntries.forEach(entry => {
-        const className = entry.querySelector('.teacher-class-name').value;
-        const period = entry.querySelector('.teacher-period').value;
+        const className = document.getElementById('teacherClassName').value;
+        const period = document.getElementById('teacherPeriod').value;
+        console.log('Teacher fields:', { className, period });
         
         if (!className || !period) {
-            console.log('Missing class fields');
-            showCustomAlert("Please fill in all class name and period fields");
+            console.log('Missing teacher fields');
+            showCustomAlert("Teacher must provide class name and period");
             return;
         }
         
-        body.classes.push({
-            className: className,
-            period: period
-        });
-    });
-    
-    console.log('Teacher classes set:', body.classes);
-}
+        body.className = className;
+        body.period = period;
+        
+    } else if (role === "student") {
+        const studentClasses = document.getElementById('studentClasses');
+        const selectedOptions = Array.from(studentClasses.selectedOptions);
+        console.log('Student selected classes:', selectedOptions);
+        
+        if (selectedOptions.length === 0) {
+            console.log('No classes selected');
+            showCustomAlert("Please select at least one class");
+            return;
+        }
+        
+        if (selectedOptions.length > 7) {
+            console.log('Too many classes selected');
+            showCustomAlert("Cannot select more than 7 classes");
+            return;
+        }
+
+        body.selectedClasses = selectedOptions.map(opt => ({
+            className: opt.value,
+            period: opt.dataset.period,
+            teacherEmail: opt.dataset.teacheremail
+        }));
+    }
 
     console.log('Final request body:', body);
 

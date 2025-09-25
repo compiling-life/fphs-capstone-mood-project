@@ -60,23 +60,18 @@
 <!-- Navbar -->
 <nav class="bg-white shadow-lg">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-          <div class="flex items-center">
-              <div class="flex-shrink-0 flex items-center">
-                  <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
-                  <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
-              </div>
-          </div>
-          <div class="flex items-center space-x-4">
-              <!-- Class Selector -->
-              <select id="classSelector" onchange="switchClass(this.value)" class="border px-3 py-2 rounded-lg">
-                  <option value="">Select Class</option>
-              </select>
-              
-              <span class="text-gray-600" id="welcomeName">Welcome, Teacher!</span>
-              <button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
-          </div>
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 flex items-center">
+          <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
+          <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
+        </div>
       </div>
+      <div class="flex items-center space-x-4">
+        <span class="text-gray-600" id="welcomeName">Welcome, Teacher!</span>
+        <button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
+      </div>
+    </div>
   </div>
 </nav>
 
@@ -178,70 +173,6 @@ async function apiRequest(url, method = "GET", body = null) {
         throw new Error(await res.text());
     }
     return res.json();
-}
-
-let currentClass = '';
-
-// Load teacher classes and setup class switching
-function loadTeacherClasses() {
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    const classSelector = document.getElementById('classSelector');
-    
-    if (userData.classes && userData.classes.length > 0) {
-        classSelector.innerHTML = '<option value="">Select a Class</option>';
-        userData.classes.forEach((cls, index) => {
-            const option = document.createElement('option');
-            option.value = cls.className;  // value used for switching
-            option.textContent = `${cls.className} (${cls.period || 'No period'})`;
-            if (index === 0) {
-                option.selected = true;
-                currentClass = cls.className;
-            }
-            classSelector.appendChild(option);
-        });
-    } else {
-        classSelector.innerHTML = '<option value="">No Classes</option>';
-    }
-}
-
-
-
-// Switch between classes
-function switchClass(className) {
-    if (!className) return;
-    
-    currentClass = className;
-    showCustomAlert(`Switched to ${className}`);
-    
-    // Reload mood data for the selected class
-    loadClassMoods();
-    loadClassAnalytics();
-}
-
-// Update your existing functions to use currentClass
-async function loadClassMoods() {
-    if (!currentClass) return;
-    
-    try {
-        const moods = await apiRequest(`/api/moods?class=${encodeURIComponent(currentClass)}`);
-        // Update your chart with data for the selected class
-        updateMoodChart(moods);
-    } catch (err) {
-        console.error('Error loading class moods:', err);
-    }
-}
-
-// Call this when the dashboard loads
-async function loadTeacherDashboard() {
-    if (!checkAuth()) return;
-    
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    document.getElementById('welcomeName').textContent = `Welcome, ${userData.email || 'Teacher'}!`;
-    
-    loadTeacherClasses();
-    if (currentClass) {
-        loadClassMoods();
-    }
 }
 
 // Check if user is logged in
