@@ -18,10 +18,11 @@ function generateCode() {
 router.post('/signup', async (req, res) => {
     console.log('=== SIGNUP API ENDPOINT HIT ===');
     console.log('Request body:', req.body);
-    
+
+    const { email, password, role, selectedClasses, className, period, classes } = req.body;
+
     try {
-        const { email, password, role, selectedClasses, className, period } = req.body;
-        console.log('Extracted values:', { email, role, className, period });
+        console.log('Extracted values:', { email, role, className, period, classes, selectedClasses });
         
         if (!email || !password || !role) {
             console.log('Missing required fields');
@@ -42,7 +43,6 @@ router.post('/signup', async (req, res) => {
             user = new User({ email, password, role });
         } else {
             console.log('Updating existing unverified user');
-            // Reset password and role for unverified user
             user.password = password;
             user.role = role;
         }
@@ -53,12 +53,10 @@ router.post('/signup', async (req, res) => {
                 console.log('No classes provided for teacher');
                 return res.status(400).json({ success: false, message: 'Teacher must provide at least one class' });
             }
-            
             user.classes = classes; // Store array of classes
             user.teacherEmail = email;
             console.log('Teacher classes set:', classes);
         }
-        
 
         if (role === 'student') {
             console.log('Processing student registration');
@@ -86,7 +84,7 @@ router.post('/signup', async (req, res) => {
             const msg = {
                 to: email,
                 from: {
-                    email: 'fphs.edumood@gmail.com', // This will need to be verified in SendGrid
+                    email: 'fphs.edumood@gmail.com', // Verified SendGrid email
                     name: 'EduMood'
                 },
                 subject: 'Your EduMood Verification Code',
@@ -106,7 +104,6 @@ router.post('/signup', async (req, res) => {
         } catch (emailError) {
             console.error('SendGrid email failed:', emailError.response?.body || emailError.message);
             
-            // Still return success but note email failed
             res.status(201).json({ 
                 success: true, 
                 message: 'User created but email failed. Your verification code: ' + user.verificationCode,
