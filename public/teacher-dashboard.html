@@ -186,10 +186,12 @@ let currentClass = '';
 function loadTeacherClasses() {
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     const classSelector = document.getElementById('classSelector');
-    
-    if (userData.classes && userData.classes.length > 0) {
+
+    const teacherClasses = userData.classes || []; // 🔹 make sure it's defined
+
+    if (teacherClasses.length > 0) {
         classSelector.innerHTML = '<option value="">Select a Class</option>';
-        userData.classes.forEach((cls, index) => {
+        teacherClasses.forEach((cls, index) => {
             const option = document.createElement('option');
             option.value = cls.className;
             option.textContent = `${cls.className} (${cls.period})`;
@@ -203,6 +205,7 @@ function loadTeacherClasses() {
         classSelector.innerHTML = '<option value="">No Classes</option>';
     }
 }
+
 
 // Switch between classes
 function switchClass(className) {

@@ -148,7 +148,8 @@ router.post('/login', async (req, res) => {
                 id: user._id, 
                 email: user.email, 
                 role: user.role,
-                selectedClasses: user.selectedClasses 
+                selectedClasses: user.selectedClasses ,
+                classes: user.classes || []   // ✅ Add this line
             }
         });
     } catch (err) {
