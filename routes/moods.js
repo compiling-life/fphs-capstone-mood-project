@@ -1,36 +1,49 @@
 import express from 'express';
+
 import Mood from '../models/Mood.js';
+
 import User from '../models/User.js';
+
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Apply auth middleware to ALL routes
 router.use(authMiddleware);
 
-// Submit a new mood
-router.post('/', async (req, res) => {
-    try {
+router.post('/', async (req, res) => 
+{
+    try 
+    {
         const user = req.user;
+
         const { className, moodLevel, notes } = req.body;
         
-        if (!className || !moodLevel) {
+        if (!className || !moodLevel) 
+        {
             return res.status(400).json({ success: false, message: 'Class and mood level are required' });
         }
 
-        // Find the teacher for this class
         let teacherEmail = '';
-        if (user.role === 'student') {
+
+        if (user.role === 'student') 
+        {
             const selectedClass = user.selectedClasses.find(c => c.className === className);
-            if (!selectedClass || !selectedClass.teacherEmail) {
+
+            if (!selectedClass || !selectedClass.teacherEmail) 
+            {
                 return res.status(400).json({ success: false, message: 'Invalid class selected' });
             }
+
             teacherEmail = selectedClass.teacherEmail;
-        } else {
-            teacherEmail = user.email; // Teacher is submitting for their own class
+        } 
+        
+        else 
+        {
+            teacherEmail = user.email;
         }
 
-        const mood = new Mood({
+        const mood = new Mood(
+        {
             userId: user._id,
             className,
             moodLevel: parseInt(moodLevel),
@@ -40,9 +53,11 @@ router.post('/', async (req, res) => {
 
         await mood.save();
         
-        res.json({ 
+        res.json(
+        { 
             success: true, 
-            mood: {
+            mood: 
+            {
                 _id: mood._id,
                 className: mood.className,
                 moodLevel: mood.moodLevel,
@@ -51,26 +66,32 @@ router.post('/', async (req, res) => {
                 anonymousId: mood.anonymousId
             }
         });
-    } catch (err) {
+    } 
+    
+    catch (err) 
+    {
         console.error('Error submitting mood:', err);
+
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
-// Get moods for current user
-router.get('/', async (req, res) => {
-    try {
+router.get('/', async (req, res) => 
+{
+    try 
+    {
         const user = req.user;
+
         let moods;
 
-        if (user.role === 'teacher') {
-            // Teacher sees all moods for their classes
+        if (user.role === 'teacher') 
+        {
             moods = await Mood.find({ teacherEmail: user.email })
                 .populate('userId', 'email role')
                 .sort({ date: -1 });
             
-            // Anonymize for teacher view
-            const anonymousMoods = moods.map(mood => ({
+            const anonymousMoods = moods.map(mood => (
+            {
                 _id: mood._id,
                 className: mood.className,
                 moodLevel: mood.moodLevel,
@@ -80,14 +101,21 @@ router.get('/', async (req, res) => {
             }));
             
             res.json(anonymousMoods);
-        } else {
-            // Student sees only their own moods
+        } 
+        
+        else 
+        {
             moods = await Mood.find({ userId: user._id })
                 .sort({ date: -1 });
+
             res.json(moods);
         }
-    } catch (err) {
+    } 
+    
+    catch (err) 
+    {
         console.error('Error fetching moods:', err);
+        
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });

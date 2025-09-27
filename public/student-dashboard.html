@@ -1,340 +1,496 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Student Dashboard - EduMood</title>
+
 <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
+
 <style>
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    z-index: 9999;
-  }
-  
-  .modal-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  
-  .modal-box {
-    background: white;
-    padding: 25px 30px;
-    border-radius: 12px;
-    max-width: 450px;
-    text-align: center;
-    box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
-    transform: scale(0.8);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    opacity: 0;
-  }
-  
-  .modal-overlay.show .modal-box {
-    transform: scale(1);
-    opacity: 1;
-  }
-  </style>
+
+.modal-overlay 
+{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 9999;
+}
+
+.modal-overlay.show 
+{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box 
+{
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
+  transform: scale(0.8);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.modal-overlay.show .modal-box 
+{
+  transform: scale(1);
+  opacity: 1;
+}
+
+</style>
+
 <body class="bg-gray-50 min-h-screen">
-  <div class="modal-overlay" id="customModal">
-    <div class="modal-box">
-        <p id="modalMessage"></p>
-    </div>
+
+<div class="modal-overlay" id="customModal">
+
+<div class="modal-box">
+
+<p id="modalMessage"></p>
+
+</div>
+
 </div>
 
 <nav class="bg-white shadow-lg">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-16">
-      <div class="flex items-center">
-        <div class="flex-shrink-0 flex items-center">
-          <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
-          <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
-        </div>
-      </div>
-      <div class="flex items-center space-x-4">
-        <span class="text-gray-600" id="welcomeName">Welcome, Student!</span>
-        <button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
-      </div>
-    </div>
-  </div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+<div class="flex justify-between h-16">
+
+<div class="flex items-center">
+
+<div class="flex-shrink-0 flex items-center">
+
+<i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
+
+<span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
+
+</div>
+
+</div>
+
+<div class="flex items-center space-x-4">
+
+<span class="text-gray-600" id="welcomeName">Welcome, Student!</span>
+
+<button onclick="logout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">Logout</button>
+
+</div>
+
+</div>
+
+</div>
+
 </nav>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-  <!-- Mood Submission -->
-  <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
-    <h2 class="text-2xl font-bold mb-6">How are you feeling?</h2>
-    <form id="moodForm">
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Class</label>
-        <select id="classSelect" required class="w-full border px-4 py-2 rounded-lg"></select>
-      </div>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-8">
 
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Mood Level</label>
-        <div class="grid grid-cols-5 gap-2 mt-2">
-          <button type="button" class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" data-value="5">
-            <i data-feather="smile"></i><br>Great (5)
-          </button>
-          <button type="button" class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" data-value="4">
-            <i data-feather="meh"></i><br>Good (4)
-          </button>
-          <button type="button" class="p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors" data-value="3">
-            <i data-feather="frown"></i><br>Okay (3)
-          </button>
-          <button type="button" class="p-3 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors" data-value="2">
-            <i data-feather="alert-triangle"></i><br>Struggling (2)
-          </button>
-          <button type="button" class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" data-value="1">
-            <i data-feather="alert-circle"></i><br>Hard (1)
-          </button>
-        </div>
-        <input type="hidden" id="moodValue" required>
-      </div>
+<h2 class="text-2xl font-bold mb-6">How are you feeling?</h2>
 
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
-        <textarea id="notes" class="w-full border px-4 py-2 rounded-lg" rows="3" placeholder="What's on your mind?"></textarea>
-      </div>
+<form id="moodForm">
 
-      <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">Submit Mood</button>
-    </form>
-  </div>
+<div class="mb-4">
 
-  <!-- Mood History Chart -->
-  <div class="bg-white p-6 rounded-xl shadow-sm">
-    <h2 class="text-2xl font-bold mb-6">Your Mood History</h2>
-    <div class="h-64">
-      <canvas id="moodChart"></canvas>
-    </div>
-  </div>
+<label class="block text-sm font-medium text-gray-700 mb-2">Class</label>
+
+<select id="classSelect" required class="w-full border px-4 py-2 rounded-lg"></select>
+
+</div>
+
+<div class="mb-4">
+
+<label class="block text-sm font-medium text-gray-700 mb-2">Mood Level</label>
+
+<div class="grid grid-cols-5 gap-2 mt-2">
+
+<button type="button" class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" data-value="5">
+
+<i data-feather="smile"></i><br>Great (5)
+
+</button>
+
+<button type="button" class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" data-value="4">
+
+<i data-feather="meh"></i><br>Good (4)
+
+</button>
+
+<button type="button" class="p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors" data-value="3">
+
+<i data-feather="frown"></i><br>Okay (3)
+
+</button>
+
+<button type="button" class="p-3 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors" data-value="2">
+
+<i data-feather="alert-triangle"></i><br>Struggling (2)
+
+</button>
+
+<button type="button" class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" data-value="1">
+
+<i data-feather="alert-circle"></i><br>Hard (1)
+
+</button>
+
+</div>
+
+<input type="hidden" id="moodValue" required>
+
+</div>
+
+<div class="mb-6">
+
+<label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+
+<textarea id="notes" class="w-full border px-4 py-2 rounded-lg" rows="3" placeholder="What's on your mind?"></textarea>
+
+</div>
+
+<button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">Submit Mood</button>
+
+</form>
+
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow-sm">
+
+<h2 class="text-2xl font-bold mb-6">Your Mood History</h2>
+
+<div class="h-64">
+
+<canvas id="moodChart"></canvas>
+
+</div>
+
+</div>
 
 </div>
 
 <script>
-  function showCustomAlert(message) {
-    const modal = document.getElementById('customModal');
-    const modalMessage = document.getElementById('modalMessage');
-    
-    modalMessage.textContent = message;
-    modal.classList.add('show');
 
-    // Auto hide after 3 seconds
-    setTimeout(() => {
-        modal.classList.remove('show');
-    }, 3000);
-}
-// --- API Helper with JWT Authentication ---
-function getAuthToken() {
-    return localStorage.getItem('token');
+function showCustomAlert(message) 
+{
+  const modal = document.getElementById('customModal');
+
+  const modalMessage = document.getElementById('modalMessage');
+
+  modalMessage.textContent = message;
+
+  modal.classList.add('show');
+
+  setTimeout(() => 
+  {
+    modal.classList.remove('show');
+  }, 3000);
 }
 
-async function apiRequest(url, method = "GET", body = null) {
-    const token = getAuthToken();
-    const options = { 
-        method, 
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": token ? `Bearer ${token}` : ""
-        }
-    };
-    if (body) options.body = JSON.stringify(body);
-    
-    const res = await fetch(url, options);
-    if (!res.ok) {
-        if (res.status === 401) {
-            // Token expired or invalid
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
-            return;
-        }
-        throw new Error(await res.text());
+function getAuthToken() 
+{
+  return localStorage.getItem('token');
+}
+
+async function apiRequest(url, method = "GET", body = null) 
+{
+  const token = getAuthToken();
+
+  const options = 
+  { 
+    method, 
+    headers: 
+    {
+      "Content-Type": "application/json",
+      "Authorization": token ? `Bearer ${token}` : ""
     }
-    return res.json();
-}
+  };
 
-// Check if user is logged in
-function checkAuth() {
-    const token = getAuthToken();
-    if (!token) {
-        window.location.href = 'index.html';
-        return false;
+  if (body) options.body = JSON.stringify(body);
+
+  const res = await fetch(url, options);
+
+  if (!res.ok) 
+  {
+    if (res.status === 401) 
+    {
+      localStorage.removeItem('token');
+
+      window.location.href = 'index.html';
+
+      return;
     }
-    return true;
+
+    throw new Error(await res.text());
+  }
+
+  return res.json();
 }
 
-// Logout
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+function checkAuth() 
+{
+  const token = getAuthToken();
+
+  if (!token) 
+  {
     window.location.href = 'index.html';
+
+    return false;
+  }
+  return true;
+}
+
+function logout() 
+{
+  localStorage.removeItem('token');
+
+  localStorage.removeItem('user');
+
+  window.location.href = 'index.html';
 }
 
 let selectedMood = null;
 
-// Load student info and classes
-async function loadStudentDashboard() {
-    if (!checkAuth()) return;
-    
-    try {
-        // Get user info from localStorage or API
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        document.getElementById('welcomeName').textContent = `Welcome, ${userData.email || 'Student'}!`;
-        
-        // Load classes from user data
-        const classSelect = document.getElementById('classSelect');
-        classSelect.innerHTML = '<option value="">Select a class</option>';
-        
-        if (userData.selectedClasses && userData.selectedClasses.length > 0) {
-            userData.selectedClasses.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.className;
-                option.textContent = `${c.className} (${c.period || 'No Period'})`;
-                classSelect.appendChild(option);
-            });
-        } else {
-            classSelect.innerHTML = '<option value="">No classes available</option>';
-        }
-        
-        loadMoodHistory();
-    } catch (err) { 
-        console.error('Error loading dashboard:', err);
-        showCustomAlert('Failed to load student data');
+async function loadStudentDashboard() 
+{
+  if (!checkAuth()) return;
+
+  try 
+  {
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+
+    document.getElementById('welcomeName').textContent = `Welcome, ${userData.email || 'Student'}!`;
+
+    const classSelect = document.getElementById('classSelect');
+
+    classSelect.innerHTML = '<option value="">Select a class</option>';
+
+    if (userData.selectedClasses && userData.selectedClasses.length > 0) 
+    {
+      userData.selectedClasses.forEach(c => 
+      {
+        const option = document.createElement('option');
+
+        option.value = c.className;
+
+        option.textContent = `${c.className} (${c.period || 'No Period'})`;
+
+        classSelect.appendChild(option);
+      });
+
+    } 
+    else 
+    {
+      classSelect.innerHTML = '<option value="">No classes available</option>';
     }
+
+    loadMoodHistory();
+  } 
+  
+  catch (err) 
+  { 
+    console.error('Error loading dashboard:', err);
+
+    showCustomAlert('Failed to load student data');
+  }
 }
 
-// Mood button selection
-document.querySelectorAll('#moodForm button[data-value]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#moodForm button[data-value]').forEach(b => {
-            b.classList.remove('bg-indigo-600', 'text-white');
-            b.classList.add(b.dataset.value >= 4 ? 'bg-green-100' : 
-                          b.dataset.value >= 3 ? 'bg-yellow-100' : 
-                          b.dataset.value >= 2 ? 'bg-orange-100' : 'bg-red-100');
-        });
-        btn.classList.remove('bg-green-100', 'bg-yellow-100', 'bg-orange-100', 'bg-red-100');
-        btn.classList.add('bg-indigo-600', 'text-white');
-        selectedMood = btn.dataset.value;
-        document.getElementById('moodValue').value = selectedMood;
+document.querySelectorAll('#moodForm button[data-value]').forEach(btn => 
+{
+  btn.addEventListener('click', () => 
+  {
+    document.querySelectorAll('#moodForm button[data-value]').forEach(b => 
+    {
+      b.classList.remove('bg-indigo-600', 'text-white');
+
+      b.classList.add(b.dataset.value >= 4 ? 'bg-green-100' : 
+      b.dataset.value >= 3 ? 'bg-yellow-100' : 
+      b.dataset.value >= 2 ? 'bg-orange-100' : 'bg-red-100');
     });
+
+    btn.classList.remove('bg-green-100', 'bg-yellow-100', 'bg-orange-100', 'bg-red-100');
+
+    btn.classList.add('bg-indigo-600', 'text-white');
+
+    selectedMood = btn.dataset.value;
+
+    document.getElementById('moodValue').value = selectedMood;
+  });
 });
 
-// Submit mood
-document.getElementById('moodForm').addEventListener('submit', async e => {
-    e.preventDefault();
+document.getElementById('moodForm').addEventListener('submit', async e => 
+{
+  e.preventDefault();
+
+  if (!checkAuth()) return;
+
+  const className = document.getElementById('classSelect').value;
+
+  const moodLevel = document.getElementById('moodValue').value;
+
+  const notes = document.getElementById('notes').value;
+
+  if (!className || !moodLevel) 
+  {
+    showCustomAlert("Please select a class and mood level");
+
+    return;
+  }
+
+  try 
+  {
+    const result = await apiRequest('/api/moods', 'POST', 
+    { 
+      className, 
+      moodLevel: parseInt(moodLevel), 
+      notes 
+    });
+
+    if (result.success) 
+    {
+      showCustomAlert('Mood submitted successfully!');
+
+      document.getElementById('moodForm').reset();
+
+      selectedMood = null;
+
+      document.querySelectorAll('#moodForm button[data-value]').forEach(b => 
+      {
+        b.classList.remove('bg-indigo-600', 'text-white');
+
+        b.classList.add(b.dataset.value >= 4 ? 'bg-green-100' : 
+        b.dataset.value >= 3 ? 'bg-yellow-100' : 
+        b.dataset.value >= 2 ? 'bg-orange-100' : 'bg-red-100');
+      });
+
+      loadMoodHistory();
+    } 
     
-    if (!checkAuth()) return;
-
-    const className = document.getElementById('classSelect').value;
-    const moodLevel = document.getElementById('moodValue').value;
-    const notes = document.getElementById('notes').value;
-
-    if (!className || !moodLevel) {
-        showCustomAlert("Please select a class and mood level");
-        return;
+    else 
+    {
+      throw new Error(result.message);
     }
+  } 
+  
+  catch (err) 
+  { 
+    console.error('Error submitting mood:', err);
 
-    try {
-        const result = await apiRequest('/api/moods', 'POST', { 
-            className, 
-            moodLevel: parseInt(moodLevel), 
-            notes 
-        });
-        
-        if (result.success) {
-            showCustomAlert('Mood submitted successfully!');
-            document.getElementById('moodForm').reset();
-            selectedMood = null;
-            document.querySelectorAll('#moodForm button[data-value]').forEach(b => {
-                b.classList.remove('bg-indigo-600', 'text-white');
-                b.classList.add(b.dataset.value >= 4 ? 'bg-green-100' : 
-                              b.dataset.value >= 3 ? 'bg-yellow-100' : 
-                              b.dataset.value >= 2 ? 'bg-orange-100' : 'bg-red-100');
-            });
-            loadMoodHistory();
-        } else {
-            throw new Error(result.message);
-        }
-    } catch (err) { 
-        console.error('Error submitting mood:', err);
-        showCustomAlert('Failed to submit mood: ' + err.message);
-    }
+    showCustomAlert('Failed to submit mood: ' + err.message);
+  }
 });
 
-// Load mood history
-async function loadMoodHistory() {
-    if (!checkAuth()) return;
+async function loadMoodHistory() 
+{
+  if (!checkAuth()) return;
+
+  try 
+  {
+    const moods = await apiRequest('/api/moods');
+
+    if (moods.length === 0) 
+    {
+      moodChart.data.labels = ['No data yet'];
+
+      moodChart.data.datasets[0].data = [0];
+    } 
     
-    try {
-        const moods = await apiRequest('/api/moods');
-        
-        if (moods.length === 0) {
-            moodChart.data.labels = ['No data yet'];
-            moodChart.data.datasets[0].data = [0];
-        } else {
-            const labels = moods.slice(-10).map(m => new Date(m.date).toLocaleDateString());
-            const data = moods.slice(-10).map(m => m.moodLevel);
-            
-            moodChart.data.labels = labels;
-            moodChart.data.datasets[0].data = data;
-        }
-        moodChart.update();
-    } catch (err) { 
-        console.error('Error loading mood history:', err);
+    else 
+    {
+      const labels = moods.slice(-10).map(m => new Date(m.date).toLocaleDateString());
+
+      const data = moods.slice(-10).map(m => m.moodLevel);
+
+      moodChart.data.labels = labels;
+
+      moodChart.data.datasets[0].data = data;
     }
+
+    moodChart.update();
+  } 
+  
+  catch (err) 
+  { 
+    console.error('Error loading mood history:', err);
+  }
 }
 
-// Initialize Chart
 const ctx = document.getElementById('moodChart').getContext('2d');
-const moodChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Mood Level',
-            data: [],
-            borderColor: '#4f46e5',
-            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-            tension: 0.4,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 5,
-                ticks: {
-                    stepSize: 1
-                }
-            }
+
+const moodChart = new Chart(ctx, 
+{
+  type: 'line',
+  data: 
+  {
+    labels: [],
+    datasets: 
+    [{
+      label: 'Mood Level',
+      data: [],
+      borderColor: '#4f46e5',
+      backgroundColor: 'rgba(79, 70, 229, 0.1)',
+      tension: 0.4,
+      fill: true
+    }]
+  },
+  options: 
+  {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: 
+    {
+      y: 
+      {
+        beginAtZero: true,
+        max: 5,
+        ticks: 
+        {
+          stepSize: 1
         }
+      }
     }
+  }
 });
 
-// Initialize on page load
-window.addEventListener('DOMContentLoaded', () => {
-    if (!checkAuth()) return;
-    
-    feather.replace();
-    loadStudentDashboard();
+window.addEventListener('DOMContentLoaded', () => 
+{
+  if (!checkAuth()) return;
+
+  feather.replace();
+
+  loadStudentDashboard();
 });
+
 </script>
+
 </body>
+
 </html>

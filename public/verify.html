@@ -1,148 +1,204 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Email Verification</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 </head>
+
 <style>
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 9999;
-    }
-    
-    .modal-overlay.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    
-    .modal-box {
-      background: white;
-      padding: 25px 30px;
-      border-radius: 12px;
-      max-width: 450px;
-      text-align: center;
-      box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
-      transform: scale(0.8);
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      opacity: 0;
-    }
-    
-    .modal-overlay.show .modal-box {
-      transform: scale(1);
-      opacity: 1;
-    }
-    </style>
+
+.modal-overlay 
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+}
+
+.modal-overlay.show 
+{
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-box 
+{
+    background: white;
+    padding: 25px 30px;
+    border-radius: 12px;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0px 10px 30px rgba(0,0,0,0.3);
+    transform: scale(0.8);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.modal-overlay.show .modal-box 
+{
+    transform: scale(1);
+    opacity: 1;
+}
+
+</style>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
 <div class="modal-overlay" id="customModal">
-    <div class="modal-box">
-        <p id="modalMessage"></p>
-    </div>
+
+<div class="modal-box">
+
+<p id="modalMessage"></p>
+
 </div>
+
+</div>
+
 <div class="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-    <h1 class="text-2xl font-bold mb-4">Verify Your Email</h1>
-    <p class="mb-4">Enter the verification code sent to your email:</p>
-    
-    <input id="verificationCode" type="text" placeholder="Verification code" class="w-full px-4 py-2 border rounded mb-4">
-    <button id="verifyBtn" class="bg-indigo-600 text-white px-4 py-2 rounded w-full hover:bg-indigo-700">Verify</button>
-    
-    <p id="message" class="text-red-500 mt-4"></p>
+
+<h1 class="text-2xl font-bold mb-4">Verify Your Email</h1>
+
+<p class="mb-4">Enter the verification code sent to your email:</p>
+
+<input id="verificationCode" type="text" placeholder="Verification code" class="w-full px-4 py-2 border rounded mb-4">
+
+<button id="verifyBtn" class="bg-indigo-600 text-white px-4 py-2 rounded w-full hover:bg-indigo-700">Verify</button>
+
+<p id="message" class="text-red-500 mt-4"></p>
+
 </div>
 
 <script>
-    document.getElementById('verifyBtn').addEventListener('click', async () => {
-        const code = document.getElementById('verificationCode').value;
-        const email = localStorage.getItem('pendingEmail'); // stored during signup
-    
-        if (!code || !email) {
-            document.getElementById('message').innerText = "Please enter the verification code.";
-            return;
-        }
-    
-        try {
-            const res = await fetch('/api/auth/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, code })
-            });
-    
-            const data = await res.json();
-    
-            if (data.success) {
-                // ✅ Store token and user info
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-    
-                showCustomAlert("Verification successful! Redirecting...");
-    
-                // Redirect based on role
-                if (data.user.role === "teacher") {
-                    window.location.href = 'teacher-dashboard.html';
-                } else {
-                    window.location.href = 'student-dashboard.html';
-                }
-            } else {
-                document.getElementById('message').innerText = data.message || "Invalid verification code.";
+
+document.getElementById('verifyBtn').addEventListener('click', async () => 
+{
+    const code = document.getElementById('verificationCode').value;
+
+    const email = localStorage.getItem('pendingEmail');
+
+    if (!code || !email) 
+    {
+        document.getElementById('message').innerText = "Please enter the verification code.";
+
+        return;
+    }
+
+    try 
+    {
+        const res = await fetch('/api/auth/verify', 
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code })
+        });
+
+        const data = await res.json();
+
+        if (data.success) 
+        {
+            localStorage.setItem('token', data.token);
+
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            showCustomAlert("Verification successful! Redirecting...");
+
+            if (data.user.role === "teacher") 
+            {
+                window.location.href = 'teacher-dashboard.html';
+            } 
+            
+            else 
+            {
+                window.location.href = 'student-dashboard.html';
             }
-        } catch (err) {
-            console.error('Verification error:', err);
-            document.getElementById('message').innerText = "Error verifying. Try again.";
+        } 
+        
+        else 
+        {
+            document.getElementById('message').innerText = data.message || "Invalid verification code.";
         }
-    });
+    } 
     
-    // Optional: simple alert function
-    function showCustomAlert(message) {
+    catch (err) 
+    {
+        console.error('Verification error:', err);
+
+        document.getElementById('message').innerText = "Error verifying. Try again.";
+    }
+});
+
+function showCustomAlert(message) 
+{
     const modal = document.getElementById('customModal');
+
     const modalMessage = document.getElementById('modalMessage');
-    
+
     modalMessage.textContent = message;
+
     modal.classList.add('show');
 
-    // Auto hide after 3 seconds
-    setTimeout(() => {
+    setTimeout(() => 
+    {
         modal.classList.remove('show');
     }, 3000);
 }
 
-function showCustomAlertWithButton(message, buttonText, buttonCallback) {
+function showCustomAlertWithButton(message, buttonText, buttonCallback) 
+{
     const modal = document.getElementById('customModal');
+
     const modalBox = modal.querySelector('.modal-box');
-    
+
     modalBox.innerHTML = `
-        <p class="mb-4">${message}</p>
-        <button id="alertButton" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            ${buttonText}
-        </button>
+
+    <p class="mb-4">${message}</p>
+
+    <button id="alertButton" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+
+    ${buttonText}
+
+    </button>
+
     `;
-    
+
     modal.classList.add('show');
-    
-    document.getElementById('alertButton').addEventListener('click', function() {
+
+    document.getElementById('alertButton').addEventListener('click', function() 
+    {
         modal.classList.remove('show');
+
         if (buttonCallback) buttonCallback();
     });
-    
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
+
+    modal.addEventListener('click', function(e) 
+    {
+        if (e.target === modal) 
+        {
             modal.classList.remove('show');
         }
     });
 }
-    </script>
-    
+
+</script>
 
 </body>
+
 </html>

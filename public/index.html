@@ -1,35 +1,44 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>EduMood - School Mood Tracker</title>
+
 <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 
-<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- AOS for animations -->
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-<!-- Feather icons -->
 <script src="https://unpkg.com/feather-icons"></script>
 
-<!-- jQuery + Select2 -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 </head>
+
 <style>
-.modal-overlay {
+
+.modal-overlay 
+{
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0,0,0,0.5);
-  display: flex; /* keep flex for centering */
+  display: flex;
   justify-content: center;
   align-items: center;
   opacity: 0;
@@ -38,12 +47,14 @@
   z-index: 9999;
 }
 
-.modal-overlay.show {
+.modal-overlay.show 
+{
   opacity: 1;
   pointer-events: auto;
 }
 
-.modal-box {
+.modal-box 
+{
   background: white;
   padding: 25px 30px;
   border-radius: 12px;
@@ -55,412 +66,623 @@
   opacity: 0;
 }
 
-.modal-overlay.show .modal-box {
+.modal-overlay.show .modal-box 
+{
   transform: scale(1);
   opacity: 1;
 }
 
-
 </style>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Modal structure -->
+
 <div class="modal-overlay" id="customModal">
-    <div class="modal-box">
-      <p id="modalMessage"></p>
-    </div>
+    
+<div class="modal-box">
+
+<p id="modalMessage"></p>
+
 </div>
 
-<!-- Navigation -->
+</div>
+
 <nav class="bg-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center">
-                    <i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
-                    <span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
-                </div>
-            </div>
-            <div class="hidden md:flex items-center space-x-8">
-                <button id="supportBtn" class="text-gray-600 hover:text-indigo-600 transition-colors">Support</button>
-                <button id="loginBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
-                <button id="signupBtn" class="border border-indigo-600 text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors">Sign Up</button>
-            </div>
-        </div>
-    </div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+<div class="flex justify-between h-16">
+
+<div class="flex items-center">
+
+<div class="flex-shrink-0 flex items-center">
+
+<i data-feather="smile" class="h-8 w-8 text-indigo-600"></i>
+
+<span class="ml-2 text-xl font-bold text-gray-800">EduMood</span>
+
+</div>
+
+</div>
+
+<div class="hidden md:flex items-center space-x-8">
+
+<button id="supportBtn" class="text-gray-600 hover:text-indigo-600 transition-colors">Support</button>
+
+<button id="loginBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
+
+<button id="signupBtn" class="border border-indigo-600 text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors">Sign Up</button>
+
+</div>
+
+</div>
+
+</div>
+
 </nav>
 
-<!-- Hero Section -->
 <section class="py-20 px-4">
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center" data-aos="fade-up">
-            <h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-6">Track Student Wellbeing, Improve Learning</h1>
-            <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">An anonymous mood tracking system that helps teachers understand classroom stress levels for better educational outcomes.</p>
-            <div class="flex justify-center space-x-4">
-                <button id="getStartedBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-semibold">Get Started</button>
-            </div>
-        </div>
-    </div>
+
+<div class="max-w-7xl mx-auto">
+
+<div class="text-center" data-aos="fade-up">
+
+<h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-6">Track Student Wellbeing, Improve Learning</h1>
+
+<p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">An anonymous mood tracking system that helps teachers understand classroom stress levels for better educational outcomes.</p>
+
+<div class="flex justify-center space-x-4">
+
+<button id="getStartedBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-semibold">Get Started</button>
+
+</div>
+
+</div>
+
+</div>
+
 </section>
 
-<!-- Features Section -->
-<!-- Features Section -->
 <section id="features" class="py-20 bg-white px-4">
-    <div class="max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold text-center text-gray-800 mb-16" data-aos="fade-up">Key Features</h2>
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="100">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-feather="user" class="text-white"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Anonymous Tracking</h3>
-                <p class="text-gray-600">Students can share their mood and stress levels anonymously, ensuring honest feedback without pressure.</p>
-            </div>
-            <div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="200">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-feather="trending-up" class="text-white"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Real-time Analytics</h3>
-                <p class="text-gray-600">Instant mood tracking with live updates. Teachers see student wellbeing trends as they happen.</p>
-            </div>
-            <div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="300">
-                <div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                    <i data-feather="bar-chart-2" class="text-white"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-3">Visual Reports</h3>
-                <p class="text-gray-600">Beautiful charts and graphs that make it easy to understand classroom mood trends over time.</p>
-            </div>
-        </div>
-    </div>
+
+<div class="max-w-7xl mx-auto">
+
+<h2 class="text-3xl font-bold text-center text-gray-800 mb-16" data-aos="fade-up">Key Features</h2>
+
+<div class="grid md:grid-cols-3 gap-8">
+
+<div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="100">
+
+<div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
+
+<i data-feather="user" class="text-white"></i>
+
+</div>
+
+<h3 class="text-xl font-semibold mb-3">Anonymous Tracking</h3>
+
+<p class="text-gray-600">Students can share their mood and stress levels anonymously, ensuring honest feedback without pressure.</p>
+
+</div>
+
+<div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="200">
+
+<div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
+
+<i data-feather="trending-up" class="text-white"></i>
+
+</div>
+
+<h3 class="text-xl font-semibold mb-3">Real-time Analytics</h3>
+
+<p class="text-gray-600">Instant mood tracking with live updates. Teachers see student wellbeing trends as they happen.</p>
+
+</div>
+
+<div class="bg-blue-50 p-6 rounded-xl" data-aos="fade-up" data-aos-delay="300">
+
+<div class="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
+
+<i data-feather="bar-chart-2" class="text-white"></i>
+
+</div>
+
+<h3 class="text-xl font-semibold mb-3">Visual Reports</h3>
+
+<p class="text-gray-600">Beautiful charts and graphs that make it easy to understand classroom mood trends over time.</p>
+
+</div>
+
+</div>
+
+</div>
+
 </section>
 
-<!-- Auth Modals -->
 <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold">Login</h3>
-            <button onclick="closeModal('loginModal')" class="text-gray-400 hover:text-gray-600">
-                <i data-feather="x"></i>
-            </button>
-        </div>
-        <form id="loginForm">
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Email</label>
-                <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div class="mb-6">
-                <label class="block text-gray-700 mb-2">Password</label>
-                <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <button type="button" onclick="login()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
-        </form>
-        <p class="text-center mt-4 text-gray-600">
-            Don't have an account? <button onclick="switchToSignup()" class="text-indigo-600 hover:underline">Sign up</button>
-        </p>
-    </div>
+
+<div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
+
+<div class="flex justify-between items-center mb-6">
+
+<h3 class="text-2xl font-bold">Login</h3>
+
+<button onclick="closeModal('loginModal')" class="text-gray-400 hover:text-gray-600">
+
+<i data-feather="x"></i>
+
+</button>
+
+</div>
+
+<form id="loginForm">
+
+<div class="mb-4">
+
+<label class="block text-gray-700 mb-2">Email</label>
+
+<input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
+<div class="mb-6">
+
+<label class="block text-gray-700 mb-2">Password</label>
+
+<input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
+<button type="button" onclick="login()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Login</button>
+
+</form>
+
+<p class="text-center mt-4 text-gray-600">
+
+Don't have an account? <button onclick="switchToSignup()" class="text-indigo-600 hover:underline">Sign up</button>
+
+</p>
+
+</div>
+
 </div>
 
 <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold">Sign Up</h3>
-            <button onclick="closeModal('signupModal')" class="text-gray-400 hover:text-gray-600">
-                <i data-feather="x"></i>
-            </button>
-        </div>
-        <form id="signupForm">
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Email</label>
-                <input type="email" id="signupEmail" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Password</label>
-                <input type="password" id="signupPassword" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Role</label>
-                <select id="signupRole" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">Select Role</option>
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                </select>
-            </div>
+<div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
 
-            <!-- Teacher fields -->
-            <div id="teacherFields" class="hidden mb-4">
-                <label class="block text-gray-700 mb-2">Class Name</label>
-                <input type="text" id="teacherClassName" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <label class="block text-gray-700 mt-4 mb-2">Period</label>
-                <input type="text" id="teacherPeriod" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
+<div class="flex justify-between items-center mb-6">
 
-            <!-- Student classes -->
-            <!-- Student classes - FIXED MULTIPLE SELECTION -->
+<h3 class="text-2xl font-bold">Sign Up</h3>
+
+<button onclick="closeModal('signupModal')" class="text-gray-400 hover:text-gray-600">
+
+<i data-feather="x"></i>
+
+</button>
+
+</div>
+
+<form id="signupForm">
+
+<div class="mb-4">
+
+<label class="block text-gray-700 mb-2">Email</label>
+
+<input type="email" id="signupEmail" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
+<div class="mb-4">
+
+<label class="block text-gray-700 mb-2">Password</label>
+
+<input type="password" id="signupPassword" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
+<div class="mb-4">
+
+<label class="block text-gray-700 mb-2">Role</label>
+
+<select id="signupRole" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+<option value="">Select Role</option>
+
+<option value="student">Student</option>
+
+<option value="teacher">Teacher</option>
+
+</select>
+
+</div>
+
+<div id="teacherFields" class="hidden mb-4">
+
+<label class="block text-gray-700 mb-2">Class Name</label>
+
+<input type="text" id="teacherClassName" placeholder="e.g. Biology" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+<label class="block text-gray-700 mt-4 mb-2">Period</label>
+
+<input type="text" id="teacherPeriod" placeholder="e.g. 1st Period" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
 <div id="studentClassesContainer" class="hidden mb-6">
-    <label class="block text-gray-700 mb-2">Select Classes (up to 7) - Hold Ctrl/Cmd to select multiple</label>
-    
-    <select id="studentClasses" multiple size="5" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <!-- Options will be populated dynamically -->
-    </select>
-    
-    <p class="text-sm text-gray-500 mt-2" id="classSelectionInfo">Select your classes (up to 7)</p>
-    <p class="text-sm text-red-500 mt-1" id="classLoadingError"></p>
-    
-    <!-- Selected classes display -->
-    <div id="selectedClasses" class="mt-2 hidden">
-        <p class="text-sm font-medium text-gray-700">Selected Classes:</p>
-        <div id="selectedClassesList" class="flex flex-wrap gap-2 mt-1"></div>
-    </div>
+
+<label class="block text-gray-700 mb-2">Select Classes (up to 7) - Hold Ctrl/Cmd to select multiple</label>
+
+<select id="studentClasses" multiple size="5" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</select>
+
+<p class="text-sm text-gray-500 mt-2" id="classSelectionInfo">Select your classes (up to 7)</p>
+
+<p class="text-sm text-red-500 mt-1" id="classLoadingError"></p>
+
+<div id="selectedClasses" class="mt-2 hidden">
+
+<p class="text-sm font-medium text-gray-700">Selected Classes:</p>
+
+<div id="selectedClassesList" class="flex flex-wrap gap-2 mt-1"></div>
+
 </div>
 
-            <button type="button" onclick="signup()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
-        </form>
-        <p class="text-center mt-4 text-gray-600">
-            Already have an account? <button onclick="switchToLogin()" class="text-indigo-600 hover:underline">Login</button>
-        </p>
-    </div>
 </div>
 
-<!-- Support Modal -->
-<!-- Support Modal -->
+<button type="button" onclick="signup()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
+
+</form>
+
+<p class="text-center mt-4 text-gray-600">
+
+Already have an account? <button onclick="switchToLogin()" class="text-indigo-600 hover:underline">Login</button>
+
+</p>
+
+</div>
+
+</div>
+
 <div id="supportModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold">Support Center</h3>
-            <button onclick="closeModal('supportModal')" class="text-gray-400 hover:text-gray-600">
-                <i data-feather="x"></i>
-            </button>
-        </div>
-        
-        <p class="text-gray-600 mb-6">Fill out this form to receive support if you're struggling with login issues, password recovery, or any other technical problems.</p>
-        
-        <!-- Simple Form - No JavaScript needed -->
-        <form action="https://formspree.io/f/mgvnveaq" method="POST">
-            <input type="hidden" name="_subject" value="EduMood Support Request">
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Your Name</label>
-                <input type="text" name="name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Your Email</label>
-                <input type="email" name="email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            
-            <div class="mb-6">
-                <label class="block text-gray-700 mb-2">Issue Type</label>
-                <select name="inquiry_type" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3">
-                    <option value="">Select issue type</option>
-                    <option value="password">Password/Login Issues</option>
-                    <option value="verification">Email Verification Problems</option>
-                    <option value="technical">Technical Issues</option>
-                    <option value="account">Account Management</option>
-                    <option value="other">Other</option>
-                </select>
-                
-                <label class="block text-gray-700 mb-2">Your Message</label>
-                <textarea name="message" required class="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="4"></textarea>
-            </div>
-            
-            <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">Send Support Request</button>
-        </form>
-    </div>
+
+<div class="bg-white rounded-lg p-8 max-w-md w-full mx-4" data-aos="zoom-in">
+
+<div class="flex justify-between items-center mb-6">
+
+<h3 class="text-2xl font-bold">Support Center</h3>
+
+<button onclick="closeModal('supportModal')" class="text-gray-400 hover:text-gray-600">
+
+<i data-feather="x"></i>
+
+</button>
+
+</div>
+
+<p class="text-gray-600 mb-6">Fill out this form to receive support if you're struggling with login issues, password recovery, or any other technical problems.</p>
+
+<form action="https://formspree.io/f/mgvnveaq" method="POST">
+
+<input type="hidden" name="_subject" value="EduMood Support Request">
+
+<div class="mb-4">
+
+<label class="block text-gray-700 mb-2">Your Name</label>
+
+<input type="text" name="name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
+<div class="mb-4">
+
+<label class="block text-gray-700 mb-2">Your Email</label>
+
+<input type="email" name="email" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+</div>
+
+<div class="mb-6">
+
+<label class="block text-gray-700 mb-2">Issue Type</label>
+
+<select name="inquiry_type" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3">
+
+<option value="">Select issue type</option>
+
+<option value="password">Password/Login Issues</option>
+
+<option value="verification">Email Verification Problems</option>
+
+<option value="technical">Technical Issues</option>
+
+<option value="account">Account Management</option>
+
+<option value="other">Other</option>
+
+</select>
+
+<label class="block text-gray-700 mb-2">Your Message</label>
+
+<textarea name="message" required class="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="4"></textarea>
+
+</div>
+
+<button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">Send Support Request</button>
+
+</form>
+
+</div>
+
 </div>
 
 <script>
 
-function showCustomAlertWithButton(message, buttonText, buttonCallback) {
+function showCustomAlertWithButton(message, buttonText, buttonCallback) 
+{
     const modal = document.getElementById('customModal');
+
     const modalBox = modal.querySelector('.modal-box');
-    
-    // Create the message with button
+
     modalBox.innerHTML = `
-        <p class="mb-4">${message}</p>
-        <button id="alertButton" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            ${buttonText}
-        </button>
+
+    <p class="mb-4">${message}</p>
+
+    <button id="alertButton" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+
+    ${buttonText}
+
+    </button>
+
     `;
-    
-    // Show modal
+
     modal.classList.add('show');
-    
-    // Add event listener to the button
-    document.getElementById('alertButton').addEventListener('click', function() {
+
+    document.getElementById('alertButton').addEventListener('click', function() 
+    {
         modal.classList.remove('show');
+
         if (buttonCallback) buttonCallback();
     });
-    
-    // Also allow closing by clicking outside (optional)
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
+
+    modal.addEventListener('click', function(e) 
+    {
+        if (e.target === modal) 
+        {
             modal.classList.remove('show');
         }
     });
 }
 
-function showCustomAlert(message) {
+function showCustomAlert(message) 
+{
     const modal = document.getElementById('customModal');
+
     const modalBox = modal.querySelector('.modal-box');
-    
-    // Reset to simple message structure
+
     modalBox.innerHTML = `<p id="modalMessage">${message}</p>`;
-    
-    // Show modal with fade
+
     modal.classList.add('show');
 
-    // Auto hide after 3 seconds for regular alerts
-    setTimeout(() => {
+    setTimeout(() => 
+    {
         modal.classList.remove('show');
     }, 3000);
 }
 
-function hideCustomAlert() {
+function hideCustomAlert() 
+{
     document.getElementById('customModal').style.display = 'none';
 }
 
+function openModal(id) 
+{
+    const modal = document.getElementById(id);
 
-    // --- Modal Logic ---
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
+    modal.classList.remove('hidden');
 
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    modal.classList.add('flex');
+}
 
-    function switchToSignup() {
-        closeModal('loginModal');
-        openModal('signupModal');
-        loadTeachers();
-    }
+function closeModal(id) 
+{
+    const modal = document.getElementById(id);
 
-    function switchToLogin() {
-        closeModal('signupModal');
-        openModal('loginModal');
-    }
+    modal.classList.add('hidden');
 
-    document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
-    document.getElementById('signupBtn').addEventListener('click', switchToSignup);
-    document.getElementById('getStartedBtn').addEventListener('click', switchToSignup);
-    document.getElementById('supportBtn').addEventListener('click', () => openModal('supportModal')); // ← ADD THIS LINE
+    modal.classList.remove('flex');
+}
 
-    // Role change handler
-    document.getElementById('signupRole').addEventListener('change', function() {
-        const teacherFields = document.getElementById('teacherFields');
-        const studentClassesContainer = document.getElementById('studentClassesContainer');
-        
-        if(this.value === "teacher") {
-            teacherFields.classList.remove("hidden");
-            studentClassesContainer.classList.add("hidden");
-        } else if(this.value === "student") {
-            teacherFields.classList.add("hidden");
-            studentClassesContainer.classList.remove("hidden");
-            loadTeachers();
-        } else {
-            teacherFields.classList.add("hidden");
-            studentClassesContainer.classList.add("hidden");
-        }
-    });
+function switchToSignup() 
+{
+    closeModal('loginModal');
 
-    // --- Auth Functions ---
-    async function login() {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
+    openModal('signupModal');
 
-        if (!email || !password) {
-            showCustomAlert("Please fill in all fields");
-            return;
-        }
+    loadTeachers();
+}
 
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
+function switchToLogin() 
+{
+    closeModal('signupModal');
 
-            const data = await response.json();
+    openModal('loginModal');
+}
 
-            if (response.ok && data.success) {
-                // Store token and user data
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                // Redirect to appropriate dashboard
-                window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
-            } else {
-                showCustomAlert(data.message || "Login failed. Please check your credentials.");
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            showCustomAlert("Error logging in. Please try again.");
-        }
-    }
+document.getElementById('loginBtn').addEventListener('click', () => openModal('loginModal'));
 
-    async function signup() {
-    console.log('=== SIGNUP FUNCTION START ===');
+document.getElementById('signupBtn').addEventListener('click', switchToSignup);
+
+document.getElementById('getStartedBtn').addEventListener('click', switchToSignup);
+
+document.getElementById('supportBtn').addEventListener('click', () => openModal('supportModal'));
+
+document.getElementById('signupRole').addEventListener('change', function() 
+{
+    const teacherFields = document.getElementById('teacherFields');
+
+    const studentClassesContainer = document.getElementById('studentClassesContainer');
+
+    if(this.value === "teacher") 
+    {
+        teacherFields.classList.remove("hidden");
+
+        studentClassesContainer.classList.add("hidden");
+    } 
     
+    else if(this.value === "student") 
+    {
+        teacherFields.classList.add("hidden");
+
+        studentClassesContainer.classList.remove("hidden");
+
+        loadTeachers();
+    } 
+    
+    else 
+    {
+        teacherFields.classList.add("hidden");
+
+        studentClassesContainer.classList.add("hidden");
+    }
+});
+
+async function login() 
+{
+    const email = document.getElementById('loginEmail').value;
+
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) 
+    {
+        showCustomAlert("Please fill in all fields");
+
+        return;
+    }
+
+    try 
+    {
+        const response = await fetch('/api/auth/login', 
+        {
+            method: 'POST',
+            headers: 
+            { 
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) 
+        {
+            localStorage.setItem('token', data.token);
+
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            window.location.href = data.user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
+        } 
+        
+        else 
+        {
+            showCustomAlert(data.message || "Login failed. Please check your credentials.");
+        }
+    } 
+    
+    catch (error) 
+    {
+        console.error('Login error:', error);
+
+        showCustomAlert("Error logging in. Please try again.");
+    }
+}
+
+async function signup() 
+{
+    console.log('=== SIGNUP FUNCTION START ===');
+
     const email = document.getElementById('signupEmail').value;
+
     const password = document.getElementById('signupPassword').value;
+
     const role = document.getElementById('signupRole').value;
 
     console.log('Form values:', { email, password, role });
 
-    if (!email || !password || !role) {
+    if (!email || !password || !role) 
+    {
         console.log('Missing required fields');
+
         showCustomAlert("Please fill in all required fields");
+
         return;
     }
 
     if ((role === "student" && !email.endsWith("@gmail.com")) ||
-        (role === "teacher" && !email.endsWith("@gmail.com"))) {
+    (role === "teacher" && !email.endsWith("@gmail.com"))) 
+    {
         console.log('Invalid email domain');
+
         showCustomAlert("Please use a valid GMAIL address.");
+
         return;
     }
 
     let body = { email, password, role };
+
     console.log('Base body:', body);
-    
-    if (role === "teacher") {
+
+    if (role === "teacher") 
+    {
         const className = document.getElementById('teacherClassName').value;
+
         const period = document.getElementById('teacherPeriod').value;
+
         console.log('Teacher fields:', { className, period });
-        
-        if (!className || !period) {
+
+        if (!className || !period) 
+        {
             console.log('Missing teacher fields');
+
             showCustomAlert("Teacher must provide class name and period");
-            return;
-        }
-        
-        body.className = className;
-        body.period = period;
-        
-    } else if (role === "student") {
-        const studentClasses = document.getElementById('studentClasses');
-        const selectedOptions = Array.from(studentClasses.selectedOptions);
-        console.log('Student selected classes:', selectedOptions);
-        
-        if (selectedOptions.length === 0) {
-            console.log('No classes selected');
-            showCustomAlert("Please select at least one class");
-            return;
-        }
-        
-        if (selectedOptions.length > 7) {
-            console.log('Too many classes selected');
-            showCustomAlert("Cannot select more than 7 classes");
+
             return;
         }
 
-        body.selectedClasses = selectedOptions.map(opt => ({
+        body.className = className;
+
+        body.period = period;
+
+    } 
+    
+    else if (role === "student") 
+    {
+        const studentClasses = document.getElementById('studentClasses');
+
+        const selectedOptions = Array.from(studentClasses.selectedOptions);
+
+        console.log('Student selected classes:', selectedOptions);
+
+        if (selectedOptions.length === 0) 
+        {
+            console.log('No classes selected');
+
+            showCustomAlert("Please select at least one class");
+
+            return;
+        }
+
+        if (selectedOptions.length > 7) 
+        {
+            console.log('Too many classes selected');
+
+            showCustomAlert("Cannot select more than 7 classes");
+
+            return;
+        }
+
+        body.selectedClasses = selectedOptions.map(opt => (
+        {
             className: opt.value,
             period: opt.dataset.period,
             teacherEmail: opt.dataset.teacheremail
@@ -469,194 +691,273 @@ function hideCustomAlert() {
 
     console.log('Final request body:', body);
 
-    try {
+    try 
+    {
         console.log('Sending request to /api/auth/signup...');
-        
-        // Add timeout to fetch request
+
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
-        // 1️⃣ Create the user (or resend verification if exists)
-        const signupRes = await fetch('/api/auth/signup', {
+
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        const signupRes = await fetch('/api/auth/signup', 
+        {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
             signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
-        
+
         console.log('Response status:', signupRes.status);
-        
-        if (!signupRes.ok) {
+
+        if (!signupRes.ok) 
+        {
             console.log('Response not OK, status:', signupRes.status);
+
             let errorText;
-            try {
+
+            try 
+            {
                 errorText = await signupRes.text();
+
                 console.log('Response text:', errorText);
-            } catch (e) {
+            } 
+            
+            catch (e) 
+            {
                 errorText = 'Could not read error response';
             }
+
             throw new Error(`HTTP ${signupRes.status}: ${errorText}`);
         }
-        
+
         const signupData = await signupRes.json();
+
         console.log('Response data:', signupData);
 
-        if (!signupData.success) {
+        if (!signupData.success) 
+        {
             console.log('Signup failed in response:', signupData.message);
+
             showCustomAlert(signupData.message || "Signup failed");
+
             return;
         }
 
         console.log('User created / verification sent:', signupData);
 
-        // 2️⃣ Store pending email for verification page
         localStorage.setItem('pendingEmail', email);
+
         console.log('Stored pendingEmail in localStorage');
 
-        // 3️⃣ Show success alert with verification button
-        showCustomAlertWithButton(
+        showCustomAlertWithButton
+        (
             "Signup successful! Check your email for a verification code.", 
             "Verify Now!",
-            () => {
+            () => 
+            {
                 closeModal('signupModal');
+
                 window.location.href = 'verify.html';
             }
         );
 
-    } catch (err) {
+    } 
+    
+    catch (err) 
+    {
         console.error('Signup error:', err);
-        if (err.name === 'AbortError') {
+
+        if (err.name === 'AbortError') 
+        {
             showCustomAlert("Request timed out. Please check your server connection.");
-        } else {
+        } 
+        
+        else 
+        {
             showCustomAlert("Error signing up: " + err.message);
         }
     }
 }
 
-
-
-// --- Debug version of loadTeachers() ---
-async function loadTeachers() {
-    try {
+async function loadTeachers() 
+{
+    try 
+    {
         console.log('=== LOAD TEACHERS START ===');
+
         const classSelect = document.getElementById("studentClasses");
+
         const errorElement = document.getElementById("classLoadingError");
-        
+
         classSelect.innerHTML = '<option value="">Loading classes...</option>';
+
         classSelect.disabled = true;
 
-        // Test the API endpoint directly
         const apiUrl = "/api/teachers";
+
         console.log('Fetching from:', apiUrl);
-        
+
         const response = await fetch(apiUrl);
+
         console.log('Response status:', response.status);
+
         console.log('Response ok:', response.ok);
 
-        if (!response.ok) {
+        if (!response.ok) 
+        {
             const errorText = await response.text();
+
             console.error('API error response:', errorText);
+
             throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const teachers = await response.json();
+
         console.log('Raw teachers data:', teachers);
+
         console.log('Teachers array length:', teachers.length);
 
-        classSelect.innerHTML = ""; // Clear loading message
+        classSelect.innerHTML = "";
 
-        if (!teachers || teachers.length === 0) {
+        if (!teachers || teachers.length === 0) 
+        {
             console.log('No teachers found in response');
+
             classSelect.innerHTML = '<option value="">No classes available yet.</option>';
+
             classSelect.disabled = true;
+
             errorElement.textContent = 'No teachers have signed up yet.';
-        } else {
+        } 
+        
+        else 
+        {
             console.log('Processing teachers:', teachers);
-            
-            // Add each teacher to dropdown
-            teachers.forEach((teacher, index) => {
+
+            teachers.forEach((teacher, index) => 
+            {
                 console.log(`Teacher ${index + 1}:`, teacher);
-                
+
                 const option = document.createElement("option");
+
                 option.value = teacher.className || `class-${index}`;
+
                 option.textContent = `${teacher.className || 'Unnamed'} (${teacher.period || 'No Period'}) - ${teacher.teacherEmail || teacher.email || 'No Email'}`;
+
                 option.dataset.period = teacher.period;
+
                 option.dataset.teacheremail = teacher.teacherEmail || teacher.email;
-                
+
                 classSelect.appendChild(option);
+                
                 console.log('Added option:', option.textContent);
             });
-            
+
             classSelect.disabled = false;
+
             errorElement.textContent = '';
+
             console.log(`Added ${teachers.length} classes to dropdown`);
         }
 
-    } catch (error) {
+    } 
+    
+    catch (error) 
+    {
         console.error('=== LOAD TEACHERS ERROR ===', error);
+
         const classSelect = document.getElementById("studentClasses");
+
         classSelect.innerHTML = '<option value="">Error: ' + error.message + '</option>';
+
         classSelect.disabled = true;
-        
+
         const errorElement = document.getElementById("classLoadingError");
+
         errorElement.textContent = 'Error loading classes: ' + error.message;
     }
 }
 
-
-// --- Multiple Selection Functionality ---
-function setupMultipleSelection() {
+function setupMultipleSelection() 
+{
     const classSelect = document.getElementById("studentClasses");
+
     const selectedClassesDiv = document.getElementById("selectedClasses");
+
     const selectedClassesList = document.getElementById("selectedClassesList");
-    
-    classSelect.addEventListener('change', function() {
+
+    classSelect.addEventListener('change', function() 
+    {
         const selectedOptions = Array.from(this.selectedOptions);
+
         selectedClassesList.innerHTML = '';
-        
-        if (selectedOptions.length > 0) {
-            selectedOptions.forEach(option => {
+
+        if (selectedOptions.length > 0) 
+        {
+            selectedOptions.forEach(option => 
+            {
                 const badge = document.createElement('span');
+
                 badge.className = 'bg-blue-100 text-blue-800 text-xs font-medium px-3 py-1 rounded-full mb-2';
-                // Show "ClassName (Period)" in the badge
-                const displayText = option.textContent.split(' - ')[0]; // Gets "ClassName (Period)"
+
+                const displayText = option.textContent.split(' - ')[0];
+
                 badge.textContent = displayText;
+
                 selectedClassesList.appendChild(badge);
             });
+
             selectedClassesDiv.classList.remove('hidden');
-        } else {
+
+        } 
+        
+        else 
+        {
             selectedClassesDiv.classList.add('hidden');
         }
-        
-        // Show selection count
+
         const infoElement = document.getElementById("classSelectionInfo");
-        if (selectedOptions.length > 7) {
+
+        if (selectedOptions.length > 7) 
+        {
             infoElement.textContent = `Too many classes selected (${selectedOptions.length}/7)`;
+
             infoElement.classList.add('text-red-500');
-        } else {
+        } 
+        
+        else 
+        {
             infoElement.textContent = `Selected ${selectedOptions.length} of 7 classes`;
+
             infoElement.classList.remove('text-red-500');
         }
     });
 }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Check if user is already logged in
-        const token = localStorage.getItem('token');
-        if (token) {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role) {
-                window.location.href = user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
-            }
+document.addEventListener('DOMContentLoaded', function() 
+{
+    const token = localStorage.getItem('token');
+
+    if (token) 
+    {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (user.role) 
+        {
+            window.location.href = user.role === "teacher" ? 'teacher-dashboard.html' : 'student-dashboard.html';
         }
-        
-        // Initialize libraries
-        if (window.AOS) AOS.init();
-        if (window.feather) feather.replace();
-    });
+    }
+
+    if (window.AOS) AOS.init();
+
+    if (window.feather) feather.replace();
+});
+
 </script>
+
 </body>
+
 </html>
